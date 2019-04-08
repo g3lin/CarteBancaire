@@ -52,7 +52,7 @@ char* message(char *cb, char *type, char * valeur)
   if (mess == NULL)
     return NULL;
   
-  sprintf(mess, "|%s|%s|%s|\n", cb, type, valeur);
+  sprintf(mess, "|%s|%s|%s|", cb, type, valeur);
 
   return mess;
 }
