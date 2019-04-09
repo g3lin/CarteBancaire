@@ -16,7 +16,6 @@ int main(int argc, char **argv)
     
     int fd_DemandeOrdre = atoi(argv[1]);
     if (fd_DemandeOrdre < 0) {
-        printf("%i", fd_DemandeOrdre);
         perror("Terminal.c - FD demande ordre invalide");
         exit(0);
     }
@@ -97,7 +96,7 @@ int main(int argc, char **argv)
     }
 
     
-
+return 0;
 
 
 
