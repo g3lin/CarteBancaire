@@ -12,6 +12,7 @@
  * Programme de gestion du terminal
  */
 int main(int argc, char **argv){
+    //----------------------------------------------------------------------  
     int fd_DemandeServeur = atoi(argv[1]);
     if (fd_DemandeServeur < 0) {
         perror("Terminal.c - FD Demande serveur invalide");
@@ -23,6 +24,9 @@ int main(int argc, char **argv){
         perror("Terminal.c - FD Reponse serveur invalide");
         exit(0);
     }
+    /*printf("Term : tube TerminalToServeur : %d\n", fd_DemandeServeur);
+    printf("Term : tube ServeurToTerminal : %d\n", fd_ReponseServeur);*/
+    //----------------------------------------------------------------------  
 
     int decoupeOk;
     char emetteur[255], type[255], valeur[255];
@@ -33,7 +37,7 @@ int main(int argc, char **argv){
 
     // ON TRANSMET AU SERVEUR
     char *msg = message("0001000000000000", "Demande", valeur);
-    sprintf(msg, "%s%s", msg, "\n");
+   // sprintf(msg, "%s\n", msg);
     if (msg == NULL) {
         perror("Terminal.c - Ordre de paiement invalide");
         exit(0);
@@ -43,6 +47,7 @@ int main(int argc, char **argv){
         perror("fd_DemandeServeur - ecritLigne");
         exit(0);
     }
+    printf("Terminal : message envoyé\n");
 
     // ON ATTEND LA REPONSE DU SERVEUR
     int aRep = 0;
