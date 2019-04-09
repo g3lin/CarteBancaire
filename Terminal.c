@@ -21,7 +21,6 @@ int main(int argc, char **argv){
     char *msg;
     int err;
 
-    int aRep = 0;
     char *rep ;
     //----------------------------------------------------------------------  
     fd_DemandeServeur = atoi(argv[1]);
@@ -36,8 +35,8 @@ int main(int argc, char **argv){
         exit(0);
     }
     //----------------------------------------------------------------------  
-    
-    // ON LIT L'ENTREE (au clavier pour l'instant)
+
+    // ON LIT L'ENTREE
     aleainit();
     sprintf(valeur,"%d",alea(1,50000));
 
@@ -67,12 +66,11 @@ int main(int argc, char **argv){
 
     if (atoi(valeur) == 1){
         // 0 = NON AUTORISEE -- 1 = AUTORISEE
-        printf("%s", "AUTORISATION ACCORDEE\n");
+        printf("%s", "AUTORISATION ACCORDEE\n\n");
     }
     else
-        printf("%s", "AUTORISATION NON ACCORDEE\n");
-   
-    
-    
+        printf("%s", "AUTORISATION NON ACCORDEE\n\n");
+  
+
 return 0;
 }

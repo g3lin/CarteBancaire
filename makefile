@@ -1,4 +1,4 @@
-all:	 TestMessage TestRedirection TestLectureEcriture Terminal Autorisation acquisition
+all:	 TestMessage TestRedirection TestLectureEcriture Terminal Autorisation Acquisition
 
 message.o: message.c message.h
 	gcc -Wall -c message.c
@@ -24,8 +24,8 @@ Terminal: lectureEcriture.o Terminal.c message.o alea.o
 Autorisation: lectureEcriture.o message.o Autorisation.c
 	gcc lectureEcriture.o message.o Autorisation.c -o Autorisation
 
-acquisition: Acquisition.c lectureEcriture.o Autorisation Terminal 
-	gcc Acquisition.c lectureEcriture.o -o acquisition
+Acquisition: Acquisition.c lectureEcriture.o Autorisation Terminal 
+	gcc Acquisition.c lectureEcriture.o -o Acquisition
 
 clean:	
 	rm -f *.o *~ 
