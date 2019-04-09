@@ -11,60 +11,34 @@
 /**
  * Programme de gestion du terminal
  */
-int main(int argc, char **argv)
-{
-    
-    int fd_DemandeOrdre = atoi(argv[1]);
-    if (fd_DemandeOrdre < 0) {
-        perror("Terminal.c - FD demande ordre invalide");
-        exit(0);
-    }
-
-    int fd_DemandeServeur = atoi(argv[2]);
+int main(int argc, char **argv){
+    int fd_DemandeServeur = atoi(argv[1]);
     if (fd_DemandeServeur < 0) {
         perror("Terminal.c - FD Demande serveur invalide");
         exit(0);
     }
 
-    int fd_ReponseServeur = atoi(argv[3]);
+    int fd_ReponseServeur = atoi(argv[2]);
     if (fd_ReponseServeur < 0) {
         perror("Terminal.c - FD Reponse serveur invalide");
         exit(0);
     }
 
-    int fd_ReponseOrdre = atoi(argv[4]);
-    if (fd_ReponseOrdre < 0) {
-        perror("Terminal.c - FD reponse ordre invalide");
-        exit(0);
-    }
-
     int decoupeOk;
     char emetteur[255], type[255], valeur[255];
-    char *pch;
-    char *mess[2];
     
     // ON LIT L'ENTREE (au clavier pour l'instant)
+    aleainit();
+    sprintf(valeur,"%d",alea(1,50000));
 
-    char *msg = litLigne(fd_DemandeOrdre);
+    // ON TRANSMET AU SERVEUR
+    char *msg = message("0001000000000000", "Demande", valeur);
+    sprintf(msg, "%s%s", msg, "\n");
     if (msg == NULL) {
         perror("Terminal.c - Ordre de paiement invalide");
         exit(0);
-    }  
-
-    // ON TRANSMET AU SERVEUR
-    pch = strtok(msg," ,.-");
-    int i = 0;
-    while (pch != NULL){
-        mess[i] = pch;
-        i++;
-        pch = strtok(NULL, " ,.-");
     }
-
-
-    char* msg_traite = message(mess[0], "Demande", mess[1]);
-    sprintf(msg_traite,"%s%s",msg_traite,"\n");
-
-    int err = ecritLigne(fd_DemandeServeur, msg_traite);
+    int err = ecritLigne(fd_DemandeServeur, msg);
     if (err == 0) {
         perror("fd_DemandeServeur - ecritLigne");
         exit(0);
@@ -88,18 +62,15 @@ int main(int argc, char **argv)
         perror("TestMessage (decoupe)");
         exit(0);
     }
-    sprintf(valeur,"%s%s",valeur,"\n");
-    err = ecritLigne(fd_ReponseOrdre, valeur);
-    if (err == 0) {
-        perror("fd_ReponseOrdre - ecritLigne");
-        exit(0);
-    }
 
+    if (*valeur == 1){
+        // 0 = NON AUTORISEE -- 1 = AUTORISEE
+         printf("%s", "AUTORISATION ACCORDEE\n");
+    }
+    else
+        printf("%s", "AUTORISATION NON ACCORDEE\n");
+   
+    
     
 return 0;
-
-
-
-
-
 }
