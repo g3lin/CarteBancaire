@@ -12,25 +12,31 @@
  * Programme d'autorisation des transactions
  */
 int main(int argc, char **argv){
+    int fd_DemandeAuto;
+    int fd_ReponseAuto;
+
+    char* messageAutorisation;
+    char* messageReponseAutorisation;
+    int err;
+
+    int soldeSurCompte = 999999;
     //----------------------------------------------------------------------   
-    int fd_DemandeAuto = atoi(argv[1]);
+    fd_DemandeAuto = atoi(argv[1]);
     if (fd_DemandeAuto < 0) {
         perror("Autorisation.c - FD demande autorisation invalide");
         exit(0);
     }
 
-    int fd_ReponseAuto = atoi(argv[2]);
+    fd_ReponseAuto = atoi(argv[2]);
     if (fd_ReponseAuto < 0) {
         perror("Autorisation.c - FD reponse autorisation invalide");
         exit(0);
     }
-    /*printf("Auto : tube AcquiToAuto : %d\n", fd_DemandeAuto);
-    printf("Auto : tube AutoToAcqui : %d\n", fd_ReponseAuto);*/
     //----------------------------------------------------------------------  
 
     while(1){
         // LECTURE DU MESSAGE DE DEMANDE D'AUTORISATION
-        char *messageAutorisation = litLigne(fd_DemandeAuto);
+        messageAutorisation = litLigne(fd_DemandeAuto);
         if (messageAutorisation == NULL) {
             perror("Autorisation - Demande d'autorisation LitLigne non valide");
             exit(0);
@@ -62,16 +68,13 @@ int main(int argc, char **argv){
         //     exit(0);
         // }
 
-        int soldeSurCompte = 999999;
-        char* messageReponseAutorisation;
-
 
         // LE PAIEMENT EST AUTORISE
         if(soldeSurCompte - atoi(valeur) >= 0 ){
             
             messageReponseAutorisation = message(emetteur,"Reponse","1");
-            fprintf(stderr, "envoi le msg *%s*", messageReponseAutorisation);
-            int err = ecritLigne(fd_ReponseAuto, messageReponseAutorisation);
+
+            err = ecritLigne(fd_ReponseAuto, messageReponseAutorisation);
             if (err == 0) {
                 perror("Autorisation- ecritLigne Réponse Autorisation (valide)");
                 exit(0);
@@ -84,7 +87,7 @@ int main(int argc, char **argv){
         else{
             messageReponseAutorisation = message(emetteur,"Reponse","0");
 
-            int err = ecritLigne(fd_ReponseAuto, messageReponseAutorisation);
+            err = ecritLigne(fd_ReponseAuto, messageReponseAutorisation);
             if (err == 0) {
                 perror("Autorisation- ecritLigne Réponse Autorisation (invalide)");
                 exit(0);
@@ -93,6 +96,5 @@ int main(int argc, char **argv){
             
         }
     }
-
     return 0;
 }
