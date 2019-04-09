@@ -24,8 +24,8 @@ Terminal: lectureEcriture.o Terminal.c message.o alea.o
 Autorisation: lectureEcriture.o message.o Autorisation.c
 	gcc lectureEcriture.o message.o Autorisation.c -o Autorisation
 
-Aquisition: Aquisition.c Autorisation Terminal 
-	gcc Aquisition.c -o Aquisition
+Aquisition: Aquisition.c lectureEcriture.o Autorisation Terminal 
+	gcc Aquisition.c lectureEcriture.o -o Aquisition
 
 clean:	
 	rm -f *.o *~ 
