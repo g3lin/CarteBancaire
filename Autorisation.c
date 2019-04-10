@@ -7,6 +7,7 @@
 
 #include "lectureEcriture.h"
 #include "message.h"
+#include "annuaire.h"
 
 /**
  * Programme d'autorisation des transactions
@@ -21,7 +22,10 @@ int main(int argc, char **argv){
     int decoupeOk;
     int err;
 
-    int soldeSurCompte = 999999;
+    AnnuaireClients *an;
+    Client *clientCB;
+
+    int soldeSurCompte;
 
     int continu = 1;
     //----------------------------------------------------------------------   
@@ -60,18 +64,19 @@ int main(int argc, char **argv){
 
 
         // LECTURE DE LA BASE DE CARTES
+        an = annuaire("annuaire.an");
+        if (an == NULL){
+            fprintf(stderr,"Annuaire non trouvé");
+            exit(0);
+        }
 
-        // int fd_ListeCartes = open("./ListeCartes.txt", O_RDONLY);
-        // if (fd < 0) {
-        //     perror("Autorisation - ./ListeCartes.txt invalide");
-        //     exit(0);
-        // }
+        clientCB = client(an,emetteur);
+        if (clientCB == NULL){
+            fprintf(stderr,"Client non trouvé");
+            exit(0);
+        }
+        soldeSurCompte = clientCB->solde;
 
-        // char *c = LitLigne(fd_ListeCartes);
-        // if (c == NULL) {
-        //     perror("Autorisation - ./ListeCartes.txt LitLigne non valide");
-        //     exit(0);
-        // }
 
 
         // LE PAIEMENT EST AUTORISE

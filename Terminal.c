@@ -7,6 +7,7 @@
 #include "lectureEcriture.h"
 #include "message.h"
 #include "alea.h"
+#include "annuaire.h"
 
 /**
  * Programme de gestion du terminal
@@ -23,7 +24,10 @@ int main(int argc, char **argv){
 
     char *rep ;
 
-    int i;
+    int i,j;
+
+
+    AnnuaireClients *an;
     //----------------------------------------------------------------------  
     fd_DemandeServeur = atoi(argv[1]);
     if (fd_DemandeServeur < 0) {
@@ -43,8 +47,22 @@ int main(int argc, char **argv){
         // ON LIT L'ENTREE (ici, on crée une valeur aléatoire pour chaque cb)
         
         sprintf(valeur,"%d",alea(1,50000));
+
+        an = annuaire("annuaire.an");
+        if(an == NULL){
+            fprintf(stderr,"%s ne peut lire l'annuaire depuis le fichier%s\n", argv[0], "Annu");
+            exit(0);
+        }
+
         
-        sprintf(emetteur, "000%d000000000000", i);
+
+        for(j = 0; j < alea(0,an->nbClients) ; j++){
+            strcpy(emetteur , an->donnees[i].CB);
+        }
+
+
+        
+        //sprintf(emetteur, "000%d000000000000", i);
 
         // ON TRANSMET AU SERVEUR
         msg = message(emetteur, "Demande", valeur);

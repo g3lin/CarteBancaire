@@ -24,11 +24,11 @@ lectureEcriture.o: lectureEcriture.c lectureEcriture.h
 TestLectureEcriture: lectureEcriture.o TestLectureEcriture.c
 	gcc lectureEcriture.o TestLectureEcriture.c -o TestLectureEcriture
 
-Terminal: lectureEcriture.o Terminal.c message.o alea.o
-	gcc lectureEcriture.o message.o alea.o Terminal.c -o Terminal
+Terminal: lectureEcriture.o Terminal.c message.o annuaire.o alea.o
+	gcc lectureEcriture.o message.o annuaire.o alea.o Terminal.c -o Terminal
 
-Autorisation: lectureEcriture.o message.o Autorisation.c
-	gcc lectureEcriture.o message.o Autorisation.c -o Autorisation
+Autorisation: lectureEcriture.o message.o annuaire.o Autorisation.c alea.o
+	gcc lectureEcriture.o message.o annuaire.o alea.o Autorisation.c -o Autorisation
 
 Acquisition: Acquisition.c lectureEcriture.o Autorisation Terminal 
 	gcc Acquisition.c lectureEcriture.o -o Acquisition
