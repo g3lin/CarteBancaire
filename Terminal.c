@@ -23,6 +23,7 @@ int main(int argc, char **argv){
     int err;
 
     char *rep ;
+    int clientRandom;
 
     int i,j;
 
@@ -55,9 +56,9 @@ int main(int argc, char **argv){
         }
 
         
-
-        for(j = 0; j < alea(0,an->nbClients) ; j++){
-            strcpy(emetteur , an->donnees[i].CB);
+        clientRandom = alea(1,an->nbClients);
+        for(j = 0; j < clientRandom ; j++){
+            strcpy(emetteur , an->donnees[j].CB);
         }
 
 

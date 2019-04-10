@@ -102,7 +102,7 @@ int main(int argc, char **argv){
                 perror("Autorisation- ecritLigne Réponse Autorisation (invalide)");
                 exit(0);
             }
-            printf("Serveur autorisation : reponse envoyée");   
+            printf("Serveur autorisation : reponse envoyée\n");   
         }
     }
     return 0;
