@@ -20,10 +20,21 @@
  */
 int main(int argc, char **argv) { 
 
-    int fd_pipeacquisitionAutorisation[2] ;
-    int fd_pipeAutorisationacquisition[2] ;
-    int fd_pipeacquisitionTerminal[2] ;
-    int fd_pipeTerminalacquisition[2] ;
+    int nbTerminal;
+    nbTerminal = atoi(argv[1]);
+    if (nbTerminal < 1){
+        printf("Erreur pas de terminaux\n");
+        exit(0);
+    }
+    //---------------------------------------------------------------------- 
+
+    int fd_pipeAcquisitionAutorisation[2] ;
+    int fd_pipeAutorisationAcquisition[2] ;
+    int fd_pipeAcquisitionTerminal[2][nbTerminal];
+    int fd_pipeTerminalAcquisition[2][nbTerminal];
+    int fd_pipe_AT[2];
+    int fd_pipe_TA[2];
+    int i;
 
     int p;
     char *rep ;
@@ -32,22 +43,30 @@ int main(int argc, char **argv) {
     int err;
     int err_exec;
 
-    int continu = 1;
-        //---------------------------------------------------------------------- 
-    // PIPES ENTRE acquisition ET AUTORISATION
-    if(pipe(fd_pipeacquisitionAutorisation) != 0) 
-    	fprintf(stderr,"Erreur creation fd_pipeacquisitionAutorisation\n");
+    int nbStop = 0;
+    //---------------------------------------------------------------------- 
 
-    if(pipe(fd_pipeAutorisationacquisition) !=0)
-    	fprintf(stderr,"Erreur creation fd_pipeAutorisationacquisition\n");
+    // PIPES ENTRE ACQUISITION ET AUTORISATION
+    if(pipe(fd_pipeAcquisitionAutorisation) != 0) 
+    	fprintf(stderr,"Erreur creation fd_pipeAcquisitionAutorisation\n");
 
-    //PIPES ENTRE acquisition ET TERMINAL
+    if(pipe(fd_pipeAutorisationAcquisition) != 0)
+    	fprintf(stderr,"Erreur creation fd_pipeAutorisationAcquisition\n");
 
-    if(pipe(fd_pipeacquisitionTerminal)!= 0) 
-    	fprintf(stderr,"Erreur creation fd_pipeacquisitionTerminal\n");
-    
-    if(pipe(fd_pipeTerminalacquisition)!= 0) 
-    	fprintf(stderr,"Erreur creation fd_pipeTerminalacquisition\n");   
+    //PIPES ENTRE ACQUISITION ET TERMINAUX
+    for(i = 0 ; i<nbTerminal ; i++){
+        // Creation des pipes AcquisitionTerminal
+        if(pipe(fd_pipe_AT)!= 0) 
+            fprintf(stderr,"Erreur creation fd_pipeAcquisitionTerminal\n");
+        fd_pipeAcquisitionTerminal[W][i] = fd_pipe_AT[W];
+        fd_pipeAcquisitionTerminal[R][i] = fd_pipe_AT[R];
+        
+        // Creation des pipes TerminalAcquisition
+        if(pipe(fd_pipe_TA)!= 0) 
+            fprintf(stderr,"Erreur creation fd_pipeTerminalAcquisition\n");
+        fd_pipeTerminalAcquisition[W][i] = fd_pipe_TA[W];
+        fd_pipeTerminalAcquisition[R][i] = fd_pipe_TA[R];
+    }
     //---------------------------------------------------------------------- 
 
     //CONFIG INITIALE
@@ -59,74 +78,88 @@ int main(int argc, char **argv) {
         // PROCESSUS FILS
         // Ceci devient le serveur d'autorisation
 
-        sprintf(arg1,"%d", fd_pipeacquisitionAutorisation[R]);
-        sprintf(arg2,"%d", fd_pipeAutorisationacquisition[W]);
+        sprintf(arg1,"%d", fd_pipeAcquisitionAutorisation[R]);
+        sprintf(arg2,"%d", fd_pipeAutorisationAcquisition[W]);
 
         err_exec = execl("./Autorisation","./Autorisation",arg1, arg2,  (char *)0);
-        perror("acquisition - initialisation : Le serveur d'autorisation s'est mal initialisé: ");
+        perror("Acquisition - initialisation : Le serveur d'autorisation s'est mal initialisé: ");
     }
 
-    p = fork();
-    if(p == 0){
-        // PROCESSUS FILS
-        // Ceci devient le terminal
+    
+    
+    for(i = 0 ; i<nbTerminal ; i++){
+        p = fork();
+        if(p == -1)
+            printf("error");
 
-        sprintf(arg1,"%d", fd_pipeTerminalacquisition[W]);
-        sprintf(arg2,"%d", fd_pipeacquisitionTerminal[R]);
-        
-        err_exec = execl("./Terminal","./Terminal",arg1, arg2,  (char *)0);
-        perror("acquisition - initialisation : Le terminal s'est mal initialisé: ");    
-	}
+        if(p == 0){
+            // PROCESSUS FILS
+            // Ceci devient le terminal
+            sprintf(arg1,"%d", fd_pipeTerminalAcquisition[W][i]);
+            sprintf(arg2,"%d", fd_pipeAcquisitionTerminal[R][i]);
+
+            err_exec = execl( "/usr/bin/xterm", "xterm", "-hold", "-e", "./Terminal", arg1, arg2, (char *)NULL );
+            perror("Acquisition - initialisation : Le terminal s'est mal initialisé: ");    
+
+        }
+
+    }
 
     //----------------------------------------------------------------------  
     // PROCESSUS PERE 
-    // Ceci reste le serveur d'aquistion
-    while(continu){
-        // 1- On lit la demande du terminal
-        rep = litLigne(fd_pipeTerminalacquisition[R]) ;
-        if (rep == 0) {
-            perror("acquisition : fd_pipeTerminalacquisition - ecritLigne");
-            exit(0);
-        }
-        if (strcmp(rep, "STOP\n") == 0){
-            printf("ARRET DU SERVEUR D'ACQUISITION\n");
-            err = ecritLigne(fd_pipeacquisitionAutorisation[W], rep);
-            if (err == 0) {
-                perror("acquisition : fd_pipeacquisitionAutorisation - ecritLigne");
+    // Ceci reste le serveur d'acquisition
+    while(1){
+        for(i = 0 ; i<nbTerminal ; i++){
+            // 1- On lit la demande du terminal
+            rep = litLigne(fd_pipeTerminalAcquisition[R][i]) ;
+            if (rep == 0) {
+                perror("Acquisition : fd_pipeTerminalAcquisition - ecritLigne");
                 exit(0);
             }
-            exit(0);
+            if (strcmp(rep, "STOP\n") == 0)
+                nbStop ++;
+            if (nbStop == nbTerminal){
+                printf("ARRET DU SERVEUR D'ACQUISITION\n");
+                err = ecritLigne(fd_pipeAcquisitionAutorisation[W], rep);
+                printf("tututut\n");
+                if (err == 0) {
+                    perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
+                    exit(0);
+                }
+                printf("tutut\n");
+                exit(0);
+            }
+            printf("Serveur Acquisition : message recu\n");
+
+
+            // 2- On transmet la demande au serveur d'autorisation
+            err = ecritLigne(fd_pipeAcquisitionAutorisation[W], rep);
+            if (err == 0) {
+                perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
+                exit(0);
+            }
+            printf("Serveur Acquisition : message envoyé\n");
+
+
+            // 3- On attend la reponse du serveur d'autorisation
+            rep = litLigne(fd_pipeAutorisationAcquisition[R]);
+            if (rep == 0) {
+                perror("TestLectureEcriture - litLigne");
+                exit(0);
+             }
+            printf("Serveur Acquisition : reponse recu\n");
+
+
+            // 4- On renvoie la reponse au terminal 
+            err = ecritLigne(fd_pipeAcquisitionTerminal[W][i], rep);
+            if (err == 0) {
+                perror("Acquisition : fd_pipeAcquisitionTerminal - ecritLigne");
+                exit(0);
+            }
+            printf("Serveur Acquisition : reponse envoyée\n");
         }
-        printf("Serveur acquisition : message recu\n");
-
-
-        // 2- On transmet la demande au serveur d'autorisation
-        err = ecritLigne(fd_pipeacquisitionAutorisation[W], rep);
-        if (err == 0) {
-            perror("acquisition : fd_pipeacquisitionAutorisation - ecritLigne");
-            exit(0);
-        }
-        printf("Serveur acquisition : message envoyé\n");
-
-
-        // 3- On attend la reponse du serveur d'autorisation
-
-        rep = litLigne(fd_pipeAutorisationacquisition[R]);
-        if (rep == 0) {
-            perror("TestLectureEcriture - litLigne");
-            exit(0);
-         }
-        printf("Serveur acquisition : reponse recu\n");
-
-
-        // 4- On renvoie la reponse au terminal 
-        err = ecritLigne(fd_pipeacquisitionTerminal[W], rep);
-        if (err == 0) {
-            perror("acquisition : fd_pipeacquisitionTerminal - ecritLigne");
-            exit(0);
-        }
-        printf("Serveur acquisition : reponse envoyée\n");
     }
+
         
 
     return 0;

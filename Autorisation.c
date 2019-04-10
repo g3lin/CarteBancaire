@@ -27,7 +27,6 @@ int main(int argc, char **argv){
 
     int soldeSurCompte;
 
-    int continu = 1;
     //----------------------------------------------------------------------   
     fd_DemandeAuto = atoi(argv[1]);
     if (fd_DemandeAuto < 0) {
@@ -42,7 +41,7 @@ int main(int argc, char **argv){
     }
     //----------------------------------------------------------------------  
 
-    while(continu){
+    while(1){
 
         // LECTURE DU MESSAGE DE DEMANDE D'AUTORISATION
         messageAutorisation = litLigne(fd_DemandeAuto);
@@ -59,6 +58,7 @@ int main(int argc, char **argv){
         decoupeOk = decoupe(messageAutorisation, emetteur, type, valeur);
         if (!decoupeOk) {
             printf("Erreur de découpage!!\n");
+            //printf("%s", messageAutorisation);
             exit(0);
         }
 
