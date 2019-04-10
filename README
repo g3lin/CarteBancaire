@@ -1,19 +1,37 @@
 README pour libCarteBancaire
 
 - Faire 'make' pour tout compiler.  
-  Si warning/problème sur malloc, modifier HAVE_MALLOC dans les
+  Si warning/probleme sur malloc, modifier HAVE_MALLOC dans les
   fichiers
 
 - Faire 'make' cleanall pour tout nettoyer, avant de faire une archive
   * NOTE * : les Mac-users doivent utiliser la commande suivante
   COPYFILE_DISABLE=1 tar zcvf libCarteBancaire.tgz libCarteBancaire
-  pour faire une archive sans les ennuyeux ._* fichiers spéciaux du Mac.
+  pour faire une archive sans les ennuyeux ._* fichiers speciaux du Mac.
 
 - TestLectureEcriture.c / lectureEcriture.(c,h) : Fonction de lecture/ecriture 
   d'une ligne/message
 
-- alea.(c,h) : générateur aléatoire - testé dans TestMessage
+- alea.(c,h) : generateur aleatoire - teste dans TestMessage
 
 - TestMessage.c message.(c,h) : Fonction de gestion des messages
 
-- TestRedirection.c : example de redirection, celui donné en annexe dans le sujet
+- TestRedirection.c : example de redirection, celui donne en annexe dans le sujet
+
+
+auteur : Jean Cousty et Laurent Najman 
+
+La bibliotheque gestionAnnuaires comprend les fichiers sources:
+- annuaire.{c, h} et testAnnuaire.c
+- un exemple d'annuaire stocke dans un fichier texte : annuaireExemple.an
+- une makefile et un fichier README (que vous etes en train de lire)
+- les fichiers alea.{c, h} et lectureEcriture.{c,h} issus d'autres bibliotheques utilisees dans le projet PR-3602
+
+Le fichier testAnnuaire.c presente un exemple de ce qui peut etre fait
+avec la bibliotheque. Cet exemple comprend quatre etapes identifiees et commentees dans le fichier source:
+- etape 1 : generation d'un annuaire aleatoire
+- etape 2 : chargement d'un annuaire depuis un fichier
+- etape 3 : filtrage d'un annuaire (pour ne garder que les cartes d'une banque specifique)
+- etape 4 : rechercher les informations associees e une carte donnee de l'annuaire
+
+Pour tester, vous devez d'abord compiler avec 'make' puis utiliser la commande './testAnnuaire nbBanques nbCartes' oe nbBanques et nbCartes sont deux entiers specifiant le nombre de banques differentes souhaitees et le nombre total des cartes contenues dans l'annuaire.

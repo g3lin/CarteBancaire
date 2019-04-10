@@ -1,4 +1,4 @@
-all:	 TestMessage TestRedirection TestLectureEcriture Terminal Autorisation Acquisition
+all:	 TestMessage TestRedirection TestLectureEcriture testAnnuaire Terminal Autorisation Acquisition
 
 message.o: message.c message.h
 	gcc -Wall -c message.c
@@ -8,6 +8,12 @@ alea.o: alea.h alea.c
 
 TestMessage: message.o alea.o TestMessage.c
 	gcc -Wall TestMessage.c message.o alea.o -o  TestMessage
+
+testAnnuaire: testAnnuaire.c annuaire.o alea.o lectureEcriture.o
+	gcc testAnnuaire.c annuaire.o alea.o lectureEcriture.o -o testAnnuaire
+
+annuaire.o: annuaire.c annuaire.h alea.h lectureEcriture.h
+	gcc -c annuaire.c
 
 TestRedirection: TestRedirection.c
 	gcc -Wall TestRedirection.c -o  TestRedirection
@@ -31,4 +37,4 @@ clean:
 	rm -f *.o *~ 
 
 cleanall: clean
-	rm TestRedirection TestMessage TestLectureEcriture Terminal Autorisation acquisition
+	rm TestRedirection TestMessage TestLectureEcriture Terminal Autorisation Acquisition testAnnuaire
