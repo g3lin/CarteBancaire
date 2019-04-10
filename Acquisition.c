@@ -31,6 +31,8 @@ int main(int argc, char **argv) {
 
     int err;
     int err_exec;
+
+    int continu = 1;
         //---------------------------------------------------------------------- 
     // PIPES ENTRE acquisition ET AUTORISATION
     if(pipe(fd_pipeacquisitionAutorisation) != 0) 
@@ -79,42 +81,52 @@ int main(int argc, char **argv) {
     //----------------------------------------------------------------------  
     // PROCESSUS PERE 
     // Ceci reste le serveur d'aquistion
+    while(continu){
+        // 1- On lit la demande du terminal
+        rep = litLigne(fd_pipeTerminalacquisition[R]) ;
+        if (rep == 0) {
+            perror("acquisition : fd_pipeTerminalacquisition - ecritLigne");
+            exit(0);
+        }
+        if (strcmp(rep, "STOP\n") == 0){
+            printf("ARRET DU SERVEUR D'ACQUISITION\n");
+            err = ecritLigne(fd_pipeacquisitionAutorisation[W], rep);
+            if (err == 0) {
+                perror("acquisition : fd_pipeacquisitionAutorisation - ecritLigne");
+                exit(0);
+            }
+            exit(0);
+        }
+        printf("Serveur acquisition : message recu\n");
 
-    // 1- On lit la demande du terminal
-    rep = litLigne(fd_pipeTerminalacquisition[R]) ;
-    if (rep == 0) {
-        perror("acquisition : fd_pipeTerminalacquisition - ecritLigne");
-        exit(0);
+
+        // 2- On transmet la demande au serveur d'autorisation
+        err = ecritLigne(fd_pipeacquisitionAutorisation[W], rep);
+        if (err == 0) {
+            perror("acquisition : fd_pipeacquisitionAutorisation - ecritLigne");
+            exit(0);
+        }
+        printf("Serveur acquisition : message envoyé\n");
+
+
+        // 3- On attend la reponse du serveur d'autorisation
+
+        rep = litLigne(fd_pipeAutorisationacquisition[R]);
+        if (rep == 0) {
+            perror("TestLectureEcriture - litLigne");
+            exit(0);
+         }
+        printf("Serveur acquisition : reponse recu\n");
+
+
+        // 4- On renvoie la reponse au terminal 
+        err = ecritLigne(fd_pipeacquisitionTerminal[W], rep);
+        if (err == 0) {
+            perror("acquisition : fd_pipeacquisitionTerminal - ecritLigne");
+            exit(0);
+        }
+        printf("Serveur acquisition : reponse envoyée\n");
     }
-    printf("Serveur acquisition : message recu\n");
-
-
-    // 2- On transmet la demande au serveur d'autorisation
-    err = ecritLigne(fd_pipeacquisitionAutorisation[W], rep);
-    if (err == 0) {
-        perror("acquisition : fd_pipeacquisitionAutorisation - ecritLigne");
-        exit(0);
-    }
-    printf("Serveur acquisition : message envoyé\n");
-
-
-    // 3- On attend la reponse du serveur d'autorisation
-
-    rep = litLigne(fd_pipeAutorisationacquisition[R]);
-    if (rep == 0) {
-        perror("TestLectureEcriture - litLigne");
-        exit(0);
-     }
-    printf("Serveur acquisition : reponse recu\n");
-
-
-    // 4- On renvoie la reponse au terminal 
-    err = ecritLigne(fd_pipeacquisitionTerminal[W], rep);
-    if (err == 0) {
-        perror("acquisition : fd_pipeacquisitionTerminal - ecritLigne");
-        exit(0);
-    }
-    printf("Serveur acquisition : reponse envoyée\n");
         
 
     return 0;

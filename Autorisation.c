@@ -17,9 +17,13 @@ int main(int argc, char **argv){
 
     char* messageAutorisation;
     char* messageReponseAutorisation;
+    char emetteur[255], type[255], valeur[255];
+    int decoupeOk;
     int err;
 
     int soldeSurCompte = 999999;
+
+    int continu = 1;
     //----------------------------------------------------------------------   
     fd_DemandeAuto = atoi(argv[1]);
     if (fd_DemandeAuto < 0) {
@@ -34,17 +38,19 @@ int main(int argc, char **argv){
     }
     //----------------------------------------------------------------------  
 
-    while(1){
+    while(continu){
+
         // LECTURE DU MESSAGE DE DEMANDE D'AUTORISATION
         messageAutorisation = litLigne(fd_DemandeAuto);
         if (messageAutorisation == NULL) {
             perror("Autorisation - Demande d'autorisation LitLigne non valide");
             exit(0);
         }
+        if (strcmp(messageAutorisation, "STOP\n") == 0){
+            printf("ARRET DU SERVEUR D'AUTORISATION\n");
+            exit(0);
+        }
         printf("Serveur autorisation : message recu\n");
-        
-        char emetteur[255], type[255], valeur[255];
-        int decoupeOk;
 
         decoupeOk = decoupe(messageAutorisation, emetteur, type, valeur);
         if (!decoupeOk) {
