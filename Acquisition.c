@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
 
 #include "lectureEcriture.h"
 #include "message.h"
@@ -32,7 +33,6 @@ int main(int argc, char **argv) {
         exit(0);
     }
     //---------------------------------------------------------------------- 
-
     int fd_pipeAcquisitionAutorisation[2] ;
     int fd_pipeAutorisationAcquisition[2] ;
     int fd_pipeAcquisitionTerminal[2][nbTerminal];
@@ -40,6 +40,9 @@ int main(int argc, char **argv) {
     int fd_pipe_AT[2];
     int fd_pipe_TA[2];
     int i;
+
+    char Tab_cb[255][nbTerminal];
+    int Tab_fd_Term[nbTerminal];
 
     int p;
     char *rep ;
@@ -94,8 +97,10 @@ int main(int argc, char **argv) {
     
     for(i = 0 ; i<nbTerminal ; i++){
         p = fork();
-        if(p == -1)
+        if(p == -1){
             printf("error");
+            exit(0);
+        }
 
         if(p == 0){
             // PROCESSUS FILS

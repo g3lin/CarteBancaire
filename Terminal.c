@@ -27,7 +27,6 @@ int main(int argc, char **argv){
 
     int i,j;
 
-
     AnnuaireClients *an;
     //----------------------------------------------------------------------  
     fd_DemandeServeur = atoi(argv[1]);
@@ -43,7 +42,7 @@ int main(int argc, char **argv){
     }
     //---------------------------------------------------------------------- 
     aleainit();
-    for(i =0 ; i<4 ; i++){
+    while(1){
         printf("%d\n", i);
         // ON LIT L'ENTREE (ici, on crée une valeur aléatoire pour chaque cb)
         
@@ -61,9 +60,6 @@ int main(int argc, char **argv){
             strcpy(emetteur , an->donnees[j].CB);
         }
 
-
-        
-        //sprintf(emetteur, "000%d000000000000", i);
 
         // ON TRANSMET AU SERVEUR
         msg = message(emetteur, "Demande", valeur);
