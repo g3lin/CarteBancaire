@@ -20,10 +20,15 @@
  */
 int main(int argc, char **argv) { 
 
+    if(argc < 2){
+        fprintf(stderr, "Erreur veuillez préciser le nombre de termminaux.\nUsage: ./Acquistion 3\n");
+        exit(0);
+    }
+
     int nbTerminal;
     nbTerminal = atoi(argv[1]);
     if (nbTerminal < 1){
-        printf("Erreur pas de terminaux\n");
+        fprintf(stderr,"Erreur pas de terminaux\n");
         exit(0);
     }
     //---------------------------------------------------------------------- 
@@ -98,7 +103,7 @@ int main(int argc, char **argv) {
             sprintf(arg1,"%d", fd_pipeTerminalAcquisition[W][i]);
             sprintf(arg2,"%d", fd_pipeAcquisitionTerminal[R][i]);
 
-            err_exec = execl( "/usr/bin/xterm", "xterm", "-hold", "-e", "./Terminal", arg1, arg2, (char *)NULL );
+            err_exec = execl( "/usr/bin/xterm", "/usr/bin/xterm", "-hold", "-e", "./Terminal", arg1, arg2, (char *)NULL );
             perror("Acquisition - initialisation : Le terminal s'est mal initialisé: ");    
 
         }
