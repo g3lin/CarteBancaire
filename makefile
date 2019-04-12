@@ -31,7 +31,7 @@ Autorisation: lectureEcriture.o message.o annuaire.o Autorisation.c alea.o
 	gcc lectureEcriture.o message.o annuaire.o alea.o Autorisation.c -o Autorisation
 
 Acquisition: Acquisition.c lectureEcriture.o Autorisation Terminal 
-	gcc Acquisition.c lectureEcriture.o -o Acquisition
+	gcc -pthread Acquisition.c lectureEcriture.o -g -o Acquisition
 
 clean:	
 	rm -f *.o *~ 

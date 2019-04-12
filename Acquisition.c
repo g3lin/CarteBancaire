@@ -11,6 +11,33 @@
 #define R 0
 #define W 1
 
+//---------------------------------------------------------------------- 
+typedef struct {
+    int fd_auto;
+    int indice_fd_terminal;
+} arg_thread;
+
+typedef struct {
+    //infos pour terminal
+    int fd_fromTerminal;
+    int fd_toTerminal;
+    //info pour autorisation
+    int fd_toAuto;
+    //adresse tableau
+    int* Tab_fd_Term;
+    char* tab_cb;
+    int i; //ligne où écrire
+} arg_thread_T;
+
+typedef struct {
+    //info pour autorisation
+    int fd_fromAuto;
+    //adresse tableau
+    int* Tab_fd_Term;
+    char* tab_cb;
+} arg_thread_A;
+//---------------------------------------------------------------------- 
+
 /**
  * Programme d'acquisition des transactions
  * Traite les requetes des terminaux qui lui sont configuré
@@ -19,6 +46,112 @@
  *
  * Centre de la banque, crée au démarrage le serveur d'auto et les terminaux propres
  */
+
+//---------------------------------------------------------------------- 
+// void *thread_LectureDemande(void *arg){
+//     arg_thread_T *true_args = arg;
+//     int fd_toAuto = true_args->fd_toAuto;
+//     int fd_fromTerminal = true_args->fd_fromTerminal;
+//     int fd_toTerminal = true_args->fd_toTerminal;
+//     int* Tab_fd_Term = true_args->Tab_fd_Term;
+//     char* tab_cb = true_args->tab_cb;
+//     int i = true_args->i;
+
+//     char *rep;
+//     int err;
+
+//     char emetteur[255], type[255], valeur[255];
+//     int decoupeOk;
+//     //---------------------------------------------------------------------- 
+//     while(1){
+//         // 1- On lit la demande du terminal
+//         rep = litLigne(fd_fromTerminal) ;
+//         if (rep == 0) {
+//             perror("Acquisition : fd_pipeTerminalAcquisition - ecritLigne");
+//             exit(0);
+//         }
+//         printf("Serveur Acquisition : message recu\n");
+
+
+//         // 2- Ecire le fd de sortie dans la memoire partagée
+//         decoupeOk = decoupe(rep, emetteur, type, valeur);
+//         if (!decoupeOk) {
+//             printf("Erreur de découpage!!\n");
+//             //printf("%s", messageAutorisation);
+//             exit(0);
+//         }
+//         tab_cb[i] = *emetteur;
+//         Tab_fd_Term[i] = fd_toTerminal;
+
+
+//         // 3- On transmet la demande au serveur d'autorisation
+//         err = ecritLigne(fd_toAuto, rep);
+//         if (err == 0) {
+//             perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
+//             exit(0);
+//         }
+//         printf("Serveur Acquisition : message envoyé\n");
+//     }
+// }
+//---------------------------------------------------------------------- 
+
+void *thread_LectureReponse(void *arg){
+    arg_thread_A *trie_arg = arg;
+    printf("coucou : %d\n",trie_arg->fd_fromAuto);
+    // arg_thread_A *true_arg = arg;
+    // int fd_fromAuto = true_arg->fd_fromAuto;
+    // int* Tab_fd_Term = true_arg->Tab_fd_Term;
+    // char* tab_cb = true_arg->tab_cb;
+
+    // int fd_toTerminal;
+    // char* rep;
+    // int err;
+
+    // char emetteur[255], type[255], valeur[255];
+    // int decoupeOk;
+
+
+    // int fd_pas_trouve = 1;
+    // int i = 0;
+    // //---------------------------------------------------------------------- 
+    // while(1){
+    //     // 1- On attend la reponse du serveur d'autorisation
+    //     rep = litLigne(fd_fromAuto);
+    //     if (rep == 0) {
+    //         perror("TestLectureEcriture - litLigne");
+    //         exit(0);
+    //         }
+    //     printf("Serveur Acquisition : reponse recu\n");
+
+
+    //     // 2- Lire le fd pour renvoyer la reponse
+    //     decoupeOk = decoupe(rep, emetteur, type, valeur);
+    //     if (!decoupeOk) {
+    //         printf("Erreur de découpage!!\n");
+    //         //printf("%s", messageAutorisation);
+    //         exit(0);
+    //     }
+    //     while(fd_pas_trouve){
+    //         if(strcmp(emetteur,tab_cb[i]) == 0){
+    //             fd_pas_trouve = 0;
+    //             break;
+    //         }  
+    //         i++;
+    //     }
+    //     fd_toTerminal = Tab_fd_Term[i];
+
+
+    //     // 3- On renvoie la reponse au terminal 
+    //     err = ecritLigne(fd_toTerminal, rep);
+    //     if (err == 0) {
+    //         perror("Acquisition : fd_pipeAcquisitionTerminal - ecritLigne");
+    //         exit(0);
+    //     }
+    //     printf("Serveur Acquisition : reponse envoyée\n");
+    // }
+}
+//---------------------------------------------------------------------- 
+
 int main(int argc, char **argv) { 
 
     if(argc < 2){
@@ -41,8 +174,8 @@ int main(int argc, char **argv) {
     int fd_pipe_TA[2];
     int i;
 
-    char Tab_cb[255][nbTerminal];
-    int Tab_fd_Term[nbTerminal];
+    char* Tab_cb = malloc(sizeof(char[255])*nbTerminal);
+    int* Tab_fd_Term = malloc(sizeof(int)*nbTerminal);
 
     int p;
     char *rep ;
@@ -51,7 +184,9 @@ int main(int argc, char **argv) {
     int err;
     int err_exec;
 
-    int nbStop = 0;
+    pthread_t thread_auto;
+    pthread_t tab_thread[nbTerminal];
+    arg_thread *args_auto  = malloc(sizeof(arg_thread_A));
     //---------------------------------------------------------------------- 
 
     // PIPES ENTRE ACQUISITION ET AUTORISATION
@@ -108,9 +243,9 @@ int main(int argc, char **argv) {
             sprintf(arg1,"%d", fd_pipeTerminalAcquisition[W][i]);
             sprintf(arg2,"%d", fd_pipeAcquisitionTerminal[R][i]);
 
-            err_exec = execl( "/usr/bin/xterm", "/usr/bin/xterm", "-hold", "-e", "./Terminal", arg1, arg2, (char *)NULL );
-            perror("Acquisition - initialisation : Le terminal s'est mal initialisé: ");    
-
+            // err_exec = execl( "/usr/bin/xterm", "/usr/bin/xterm", "-hold", "-e", "./Terminal", arg1, arg2, (char *)NULL );
+            // perror("Acquisition - initialisation : Le terminal s'est mal initialisé: ");    
+            exit(0);
         }
 
     }
@@ -118,59 +253,25 @@ int main(int argc, char **argv) {
     //----------------------------------------------------------------------  
     // PROCESSUS PERE 
     // Ceci reste le serveur d'acquisition
-    while(1){
-        for(i = 0 ; i<nbTerminal ; i++){
-            // 1- On lit la demande du terminal
-            rep = litLigne(fd_pipeTerminalAcquisition[R][i]) ;
-            if (rep == 0) {
-                perror("Acquisition : fd_pipeTerminalAcquisition - ecritLigne");
-                exit(0);
-            }
-            if (strcmp(rep, "STOP\n") == 0)
-                nbStop ++;
-            if (nbStop == nbTerminal){
-                printf("ARRET DU SERVEUR D'ACQUISITION\n");
-                err = ecritLigne(fd_pipeAcquisitionAutorisation[W], rep);
-                printf("tututut\n");
-                if (err == 0) {
-                    perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
-                    exit(0);
-                }
-                printf("tutut\n");
-                exit(0);
-            }
-            printf("Serveur Acquisition : message recu\n");
+    printf("Avant la création des args du thread.\n");
 
+    
+    args_auto->fd_auto = 4;//fd_pipeAutorisationAcquisition[R];
+    // printf("1.\n");
+    // args_auto->Tab_fd_Term = Tab_fd_Term;
+    // printf("2.\n");
+    // args_auto->tab_cb = Tab_cb;
 
-            // 2- On transmet la demande au serveur d'autorisation
-            err = ecritLigne(fd_pipeAcquisitionAutorisation[W], rep);
-            if (err == 0) {
-                perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
-                exit(0);
-            }
-            printf("Serveur Acquisition : message envoyé\n");
-
-
-            // 3- On attend la reponse du serveur d'autorisation
-            rep = litLigne(fd_pipeAutorisationAcquisition[R]);
-            if (rep == 0) {
-                perror("TestLectureEcriture - litLigne");
-                exit(0);
-             }
-            printf("Serveur Acquisition : reponse recu\n");
-
-
-            // 4- On renvoie la reponse au terminal 
-            err = ecritLigne(fd_pipeAcquisitionTerminal[W][i], rep);
-            if (err == 0) {
-                perror("Acquisition : fd_pipeAcquisitionTerminal - ecritLigne");
-                exit(0);
-            }
-            printf("Serveur Acquisition : reponse envoyée\n");
-        }
+    printf("Avant la création du thread.\n");
+    if (pthread_create(&thread_auto, NULL, thread_LectureReponse, args_auto)) {
+        perror("pthread_create");
+        return EXIT_FAILURE;
     }
-
+    if (pthread_join(thread_auto, NULL)) {
+        perror("pthread_join");
+        return EXIT_FAILURE;
+    }
         
-
+     printf("Après la création du thread.\n");
     return 0;
 }
