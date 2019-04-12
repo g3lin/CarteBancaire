@@ -125,15 +125,15 @@ void *thread_LectureReponse(void *arg){
     //         //printf("%s", messageAutorisation);
     //         exit(0);
     //     }
-    //     // while(fd_pas_trouve){
-    //         // char cb = tab_cb[i];
-    //         // printf("%d\n", cb);
+    //     while(fd_pas_trouve){
+    //         char cb = tab_cb[i];
+    //         printf("%d\n", cb);
     //         // if(strcmp(emetteur,cb) == 0){
     //         //     fd_pas_trouve = 0;
     //         //     break;
     //         // }  
     //         // i++;
-    //     // }
+    //     }
     //     fd_toTerminal = Tab_fd_Term[i];
 
 
