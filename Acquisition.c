@@ -20,7 +20,7 @@ typedef struct {
     int fd_toAuto;
     //adresse tableau
     int* Tab_fd_Term;
-    char* tab_cb;
+    char** tab_cb;
     int i; //ligne où écrire
 } arg_thread_T;
 
@@ -29,7 +29,7 @@ typedef struct {
     int fd_fromAuto;
     //adresse tableau
     int* Tab_fd_Term;
-    char* tab_cb;
+    char** tab_cb;
 } arg_thread_A;
 //---------------------------------------------------------------------- 
 
@@ -45,49 +45,51 @@ typedef struct {
 //---------------------------------------------------------------------- 
 void *thread_LectureDemande(void *arg){
     printf("thread Terminal\n");
-//     arg_thread_T *true_args = arg;
-//     int fd_toAuto = true_args->fd_toAuto;
-//     int fd_fromTerminal = true_args->fd_fromTerminal;
-//     int fd_toTerminal = true_args->fd_toTerminal;
-//     int* Tab_fd_Term = true_args->Tab_fd_Term;
-//     char* tab_cb = true_args->tab_cb;
-//     int i = true_args->i;
+    arg_thread_T *true_args = arg;
+    int fd_toAuto = true_args->fd_toAuto;
+    int fd_fromTerminal = true_args->fd_fromTerminal;
+    int fd_toTerminal = true_args->fd_toTerminal;
+    int* Tab_fd_Term = true_args->Tab_fd_Term;
+    char** tab_cb = true_args->tab_cb;
+    int i = true_args->i;
 
-//     char *rep;
-//     int err;
+    char *rep;
+    int err;
 
-//     char emetteur[255], type[255], valeur[255];
-//     int decoupeOk;
-//     //---------------------------------------------------------------------- 
-//     while(1){
-//         // 1- On lit la demande du terminal
-//         rep = litLigne(fd_fromTerminal) ;
-//         if (rep == 0) {
-//             perror("Acquisition : fd_pipeTerminalAcquisition - ecritLigne");
-//             exit(0);
-//         }
-//         printf("Serveur Acquisition : message recu\n");
+    char emetteur[255], type[255], valeur[255];
+    int decoupeOk;
+    //---------------------------------------------------------------------- 
+    while(1){
+        // 1- On lit la demande du terminal
+        rep = litLigne(fd_fromTerminal) ;
+        if (rep == 0) {
+            perror("Acquisition : fd_pipeTerminalAcquisition - ecritLigne");
+            exit(0);
+        }
+        printf("Serveur Acquisition : message recu\n");
+
+        printf("lecture demande: %s",rep);
+
+        // 2- Ecire le fd de sortie dans la memoire partagée
+        decoupeOk = decoupe(rep, emetteur, type, valeur);
+        if (!decoupeOk) {
+            printf("Erreur de découpage!!\n");
+            //printf("%s", messageAutorisation);
+            exit(0);
+        }
+
+        tab_cb[i] = emetteur;
+        Tab_fd_Term[i] = fd_toTerminal;
 
 
-//         // 2- Ecire le fd de sortie dans la memoire partagée
-//         decoupeOk = decoupe(rep, emetteur, type, valeur);
-//         if (!decoupeOk) {
-//             printf("Erreur de découpage!!\n");
-//             //printf("%s", messageAutorisation);
-//             exit(0);
-//         }
-//         tab_cb[i] = *emetteur;
-//         Tab_fd_Term[i] = fd_toTerminal;
-
-
-//         // 3- On transmet la demande au serveur d'autorisation
-//         err = ecritLigne(fd_toAuto, rep);
-//         if (err == 0) {
-//             perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
-//             exit(0);
-//         }
-//         printf("Serveur Acquisition : message envoyé\n");
-//     }
+        // 3- On transmet la demande au serveur d'autorisation
+        err = ecritLigne(fd_toAuto, rep);
+        if (err == 0) {
+            perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
+            exit(0);
+        }
+        printf("Serveur Acquisition : message envoyé\n");
+    }
 }
 //---------------------------------------------------------------------- 
 
@@ -95,7 +97,7 @@ void *thread_LectureReponse(void *arg){
     arg_thread_A *true_arg = arg;
     int fd_fromAuto = true_arg->fd_fromAuto;
     int* Tab_fd_Term = true_arg->Tab_fd_Term;
-    char* tab_cb = true_arg->tab_cb;
+    char** tab_cb = true_arg->tab_cb;
 
     int fd_toTerminal;
     char* rep;
@@ -108,43 +110,45 @@ void *thread_LectureReponse(void *arg){
     int i = 0;
     //---------------------------------------------------------------------- 
     printf("thread autorisation\n");
-    // while(1){
-    //     // 1- On attend la reponse du serveur d'autorisation
-    //     rep = litLigne(fd_fromAuto);
-    //     if (rep == 0) {
-    //         perror("TestLectureEcriture - litLigne");
-    //         exit(0);
-    //         }
-    //     printf("Serveur Acquisition : reponse recu\n");
+    while(1){
+        // 1- On attend la reponse du serveur d'autorisation
+        rep = litLigne(fd_fromAuto);
+        if (rep == 0) {
+            perror("TestLectureEcriture - litLigne");
+            exit(0);
+            }
+        printf("Serveur Acquisition : reponse recu\n");
+
+        printf("lecture reponse: %s",rep);
 
 
-    //     // 2- Lire le fd pour renvoyer la reponse
-    //     decoupeOk = decoupe(rep, emetteur, type, valeur);
-    //     if (!decoupeOk) {
-    //         printf("Erreur de découpage!!\n");
-    //         //printf("%s", messageAutorisation);
-    //         exit(0);
-    //     }
-    //     while(fd_pas_trouve){
-    //         char cb = tab_cb[i];
-    //         printf("%d\n", cb);
-    //         // if(strcmp(emetteur,cb) == 0){
-    //         //     fd_pas_trouve = 0;
-    //         //     break;
-    //         // }  
-    //         // i++;
-    //     }
-    //     fd_toTerminal = Tab_fd_Term[i];
+        // 2- Lire le fd pour renvoyer la reponse
+        decoupeOk = decoupe(rep, emetteur, type, valeur);
+        if (!decoupeOk) {
+            printf("Erreur de découpage!!\n");
+            //printf("%s", messageAutorisation);
+            exit(0);
+        }
+        while(fd_pas_trouve){
+            char* cb = tab_cb[i];
+            printf("%s\n", cb);
+            if(strcmp(emetteur,cb) == 0){
+                //fd_pas_trouve = 0;
+                break;
+            }  
+            i++;
+        }
+        fd_toTerminal = Tab_fd_Term[i];
 
 
-    //     // 3- On renvoie la reponse au terminal 
-    //     err = ecritLigne(fd_toTerminal, rep);
-    //     if (err == 0) {
-    //         perror("Acquisition : fd_pipeAcquisitionTerminal - ecritLigne");
-    //         exit(0);
-    //     }
-    //     printf("Serveur Acquisition : reponse envoyée\n");
-    // }
+        // 3- On renvoie la reponse au terminal 
+        err = ecritLigne(fd_toTerminal, rep);
+        if (err == 0) {
+            perror("Acquisition : fd_pipeAcquisitionTerminal - ecritLigne");
+            exit(0);
+        }
+        printf("Serveur Acquisition : reponse envoyée\n");
+    }
 }
 //---------------------------------------------------------------------- 
 
@@ -170,7 +174,7 @@ int main(int argc, char **argv) {
     int fd_pipe_TA[2];
     int i;
 
-    char* Tab_cb = malloc(sizeof(char[255])*nbTerminal);
+    char** Tab_cb = malloc(sizeof(char[255])*nbTerminal);
     int* Tab_fd_Term = malloc(sizeof(int)*nbTerminal);
 
     int p;
