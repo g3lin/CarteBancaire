@@ -25,17 +25,17 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
-    int nbTerminal;
-    nbTerminal = atoi(argv[1]);
-    if (nbTerminal < 1){
+
+    nbTerminaux = atoi(argv[1]);
+    if (nbTerminaux < 1){
         fprintf(stderr,"Erreur pas de terminaux\n");
         exit(0);
     }
     //---------------------------------------------------------------------- 
     int fd_pipeAcquisitionAutorisation[2] ;
     int fd_pipeAutorisationAcquisition[2] ;
-    int fd_pipeAcquisitionTerminal[2][nbTerminal];
-    int fd_pipeTerminalAcquisition[2][nbTerminal];
+    int fd_pipeAcquisitionTerminal[2][nbTerminaux];
+    int fd_pipeTerminalAcquisition[2][nbTerminaux];
     int fd_pipe_AT[2];
     int fd_pipe_TA[2];
     int i;
@@ -45,6 +45,10 @@ int main(int argc, char **argv) {
 
     int err;
     int err_exec;
+    if (sem_init(&semaphoreCopyArgs,1,1) == -1){
+        perror("Erreur d'initialisation du sémaphore CB: ");
+        exit(0);
+    }
 
 
 
@@ -58,12 +62,12 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
-    char** Tab_cb = malloc(sizeof(char[255])*nbTerminal);
-    int* Tab_fd_Term = malloc(sizeof(int)*nbTerminal);
+    char** Tab_cb = malloc(sizeof(char[255])*nbTerminaux);
+    int* Tab_fd_Term = malloc(sizeof(int)*nbTerminaux);
 
 
     pthread_t thread_auto;
-    pthread_t tab_thread[nbTerminal];
+    pthread_t tab_thread[nbTerminaux];
 
     arg_thread_A *args_auto  = malloc(sizeof(arg_thread_A));
     arg_thread_T * args_term = malloc(sizeof(arg_thread_T));
@@ -77,12 +81,13 @@ int main(int argc, char **argv) {
     	fprintf(stderr,"Erreur creation fd_pipeAutorisationAcquisition\n");
 
     //PIPES ENTRE ACQUISITION ET TERMINAUX
-    for(i = 0 ; i<nbTerminal ; i++){
+    for(i = 0 ; i<nbTerminaux ; i++){
         // Creation des pipes AcquisitionTerminal
         if(pipe(fd_pipe_AT)!= 0) 
             fprintf(stderr,"Erreur creation fd_pipeAcquisitionTerminal\n");
         fd_pipeAcquisitionTerminal[W][i] = fd_pipe_AT[W];
         fd_pipeAcquisitionTerminal[R][i] = fd_pipe_AT[R];
+
         
         // Creation des pipes TerminalAcquisition
         if(pipe(fd_pipe_TA)!= 0) 
@@ -110,7 +115,7 @@ int main(int argc, char **argv) {
 
     
     
-    for(i = 0 ; i<nbTerminal ; i++){
+    for(i = 0 ; i<nbTerminaux ; i++){
         p = fork();
         if(p == -1){
             printf("error");
@@ -145,24 +150,29 @@ int main(int argc, char **argv) {
     }
     
    
-    // Creation des threads lisant les terminaux
+    // Creation des threads lisant les terminaux 
     args_term->fd_toAuto = fd_pipeAcquisitionAutorisation[W];
     args_term->Tab_fd_Term = Tab_fd_Term;
     args_term->tab_cb = Tab_cb;
+    
+    
 
-    for (i = 0 ; i<nbTerminal ; i++){
-        args_term->fd_fromTerminal = fd_pipeTerminalAcquisition[R][i];
-        args_term->fd_toTerminal = fd_pipeAcquisitionTerminal[W][i];
-        args_term->i = i;
-        
+    for (i = 0 ; i<nbTerminaux ; i++){
+        sem_wait(&semaphoreCopyArgs);
+            args_term->fd_fromTerminal = fd_pipeTerminalAcquisition[R][i];
+            args_term->fd_toTerminal = fd_pipeAcquisitionTerminal[W][i];
+            args_term->i = i;
+        sem_post(&semaphoreCopyArgs);
+
         if (pthread_create(&tab_thread[i], NULL, thread_LectureDemande, args_term)) {
             perror("pthread_create");
             return EXIT_FAILURE;
         }
+        
     }
 
     
-    for (i = 0 ; i<nbTerminal ; i++){
+    for (i = 0 ; i<nbTerminaux ; i++){
         if (pthread_join(tab_thread[i], NULL)) {
             perror("pthread_join");
             return EXIT_FAILURE;

@@ -41,9 +41,12 @@ int main(int argc, char **argv){
         exit(0);
     }
     //---------------------------------------------------------------------- 
+    printf("tube d'entree à aquisition %d\n\n",fd_DemandeServeur);
+    printf("tube de sortie d'aquistion : %d\n\n",fd_ReponseServeur);
+
     aleainit();
     while(1){
-        printf("%d\n", i);
+        //printf("%d\n", i);
         // ON LIT L'ENTREE (ici, on crée une valeur aléatoire pour chaque cb)
         
         sprintf(valeur,"%d",alea(1,50000));

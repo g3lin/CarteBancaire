@@ -1,6 +1,8 @@
 #include <semaphore.h>
 sem_t semaphoreTableauCB;
 sem_t semaphoreTableauTerm;
+sem_t semaphoreCopyArgs;
+int nbTerminaux;
 
 //---------------------------------------------------------------------- 
 typedef struct {

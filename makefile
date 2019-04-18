@@ -30,10 +30,10 @@ Terminal: lectureEcriture.o Terminal.c message.o annuaire.o alea.o
 Autorisation: lectureEcriture.o message.o annuaire.o Autorisation.c alea.o
 	gcc lectureEcriture.o message.o annuaire.o alea.o Autorisation.c -o Autorisation
 
-Acquisition_Demande.o: Acquisition.h 
-	gcc -c -Wall  Acquisition_Demande.c
+Acquisition_Demande.o: Acquisition_Demande.c Acquisition.h 
+	gcc -c -Wall  Acquisition.h Acquisition_Demande.c
 
-Acquisition_Reponse.o: Acquisition.h 
+Acquisition_Reponse.o: Acquisition_Reponse.c Acquisition.h 
 	gcc -c -Wall Acquisition.h Acquisition_Reponse.c
 
 Acquisition: Acquisition.c Acquisition.h lectureEcriture.o message.o Acquisition_Demande.o Acquisition_Reponse.o Autorisation Terminal 

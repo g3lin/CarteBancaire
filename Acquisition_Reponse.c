@@ -26,7 +26,6 @@ void *thread_LectureReponse(void *arg){
     char* valeur = malloc(sizeof(char)*255);
     int decoupeOk;
 
-    int fd_pas_trouve = 1;
     int i = 0;
     char* cb = malloc(sizeof(char)*255);
     //---------------------------------------------------------------------- 
@@ -51,7 +50,7 @@ void *thread_LectureReponse(void *arg){
             exit(0);
         }
         
-        while(fd_pas_trouve){
+        for(i=0;i<nbTerminaux;i++){
             sem_wait(&(semaphoreTableauCB));
                 if(tab_cb[i]!=NULL){
                     strcpy(cb,tab_cb[i]) ;
