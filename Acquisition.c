@@ -4,34 +4,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
-
+#include <semaphore.h>
+#include "Acquisition.h"
 #include "lectureEcriture.h"
 #include "message.h"
 
 #define R 0
 #define W 1
 
-//---------------------------------------------------------------------- 
-typedef struct {
-    //infos pour terminal
-    int fd_fromTerminal;
-    int fd_toTerminal;
-    //info pour autorisation
-    int fd_toAuto;
-    //adresse tableau
-    int* Tab_fd_Term;
-    char** tab_cb;
-    int i; //ligne où écrire
-} arg_thread_T;
-
-typedef struct {
-    //info pour autorisation
-    int fd_fromAuto;
-    //adresse tableau
-    int* Tab_fd_Term;
-    char** tab_cb;
-} arg_thread_A;
-//---------------------------------------------------------------------- 
+sem_t semaphoreTableauCB;
+sem_t semaphoreTableauTerm;
 
 /**
  * Programme d'acquisition des transactions
@@ -51,6 +33,7 @@ void *thread_LectureDemande(void *arg){
     int fd_toTerminal = true_args->fd_toTerminal;
     int* Tab_fd_Term = true_args->Tab_fd_Term;
     char** tab_cb = true_args->tab_cb;
+
     int i = true_args->i;
 
     char *rep;
@@ -77,9 +60,13 @@ void *thread_LectureDemande(void *arg){
             //printf("%s", messageAutorisation);
             exit(0);
         }
+        sem_wait(&(semaphoreTableauCB));
+            tab_cb[i] = emetteur;
+        sem_post(&(semaphoreTableauCB));
 
-        tab_cb[i] = emetteur;
-        Tab_fd_Term[i] = fd_toTerminal;
+        sem_wait(&(semaphoreTableauTerm));
+            Tab_fd_Term[i] = fd_toTerminal;
+        sem_post(&(semaphoreTableauTerm));
 
 
         // 3- On transmet la demande au serveur d'autorisation
@@ -99,15 +86,19 @@ void *thread_LectureReponse(void *arg){
     int* Tab_fd_Term = true_arg->Tab_fd_Term;
     char** tab_cb = true_arg->tab_cb;
 
+
     int fd_toTerminal;
     char* rep;
     int err;
 
-    char emetteur[255], type[255], valeur[255];
+    char* emetteur = malloc(sizeof(char)*255);
+    char* type = malloc(sizeof(char)*255);
+    char* valeur = malloc(sizeof(char)*255);
     int decoupeOk;
 
     int fd_pas_trouve = 1;
     int i = 0;
+    char* cb = malloc(sizeof(char)*255);
     //---------------------------------------------------------------------- 
     printf("thread autorisation\n");
     while(1){
@@ -129,8 +120,14 @@ void *thread_LectureReponse(void *arg){
             //printf("%s", messageAutorisation);
             exit(0);
         }
+        
         while(fd_pas_trouve){
-            char* cb = tab_cb[i];
+            sem_wait(&(semaphoreTableauCB));
+                if(tab_cb[i]!=NULL){
+                    strcpy(cb,tab_cb[i]) ;
+                }
+            sem_post(&(semaphoreTableauCB));
+
             printf("%s\n", cb);
             if(strcmp(emetteur,cb) == 0){
                 //fd_pas_trouve = 0;
@@ -138,7 +135,9 @@ void *thread_LectureReponse(void *arg){
             }  
             i++;
         }
-        fd_toTerminal = Tab_fd_Term[i];
+        sem_wait(&(semaphoreTableauTerm));
+            fd_toTerminal = Tab_fd_Term[i];
+        sem_post(&(semaphoreTableauTerm));
 
 
         // 3- On renvoie la reponse au terminal 
@@ -153,6 +152,7 @@ void *thread_LectureReponse(void *arg){
 //---------------------------------------------------------------------- 
 
 int main(int argc, char **argv) { 
+
 
     if(argc < 2){
         fprintf(stderr, "Erreur veuillez préciser le nombre de termminaux.\nUsage: ./Acquistion 3\n");
@@ -173,10 +173,6 @@ int main(int argc, char **argv) {
     int fd_pipe_AT[2];
     int fd_pipe_TA[2];
     int i;
-
-    char** Tab_cb = malloc(sizeof(char[255])*nbTerminal);
-    int* Tab_fd_Term = malloc(sizeof(int)*nbTerminal);
-
     int p;
     char *rep ;
     char arg1[255], arg2[255]; 
@@ -184,8 +180,25 @@ int main(int argc, char **argv) {
     int err;
     int err_exec;
 
+
+
+    if (sem_init(&semaphoreTableauCB,1,1) == -1){
+        perror("Erreur d'initialisation du sémaphore CB: ");
+        exit(0);
+    }
+
+    if (sem_init(&semaphoreTableauTerm,1,1) == -1){
+        perror("Erreur d'initialisation du sémaphore Terminaux: ");
+        exit(0);
+    }
+
+    char** Tab_cb = malloc(sizeof(char[255])*nbTerminal);
+    int* Tab_fd_Term = malloc(sizeof(int)*nbTerminal);
+
+
     pthread_t thread_auto;
     pthread_t tab_thread[nbTerminal];
+
     arg_thread_A *args_auto  = malloc(sizeof(arg_thread_A));
     arg_thread_T * args_term = malloc(sizeof(arg_thread_T));
     //---------------------------------------------------------------------- 
