@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
             args_term->fd_fromTerminal = fd_pipeTerminalAcquisition[R][i];
             args_term->fd_toTerminal = fd_pipeAcquisitionTerminal[W][i];
             args_term->i = i;
-        sem_post(&semaphoreCopyArgs);
+        
 
         if (pthread_create(&tab_thread[i], NULL, thread_LectureDemande, args_term)) {
             perror("pthread_create");

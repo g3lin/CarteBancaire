@@ -26,11 +26,16 @@ void *thread_LectureReponse(void *arg){
     char* valeur = malloc(sizeof(char)*255);
     int decoupeOk;
 
+    int trouve;
+
     int i = 0;
     char* cb = malloc(sizeof(char)*255);
     //---------------------------------------------------------------------- 
     printf("thread autorisation\n");
     while(1){
+
+        trouve = 0;
+
         // 1- On attend la reponse du serveur d'autorisation
         rep = litLigne(fd_fromAuto);
         if (rep == 0) {
@@ -54,12 +59,17 @@ void *thread_LectureReponse(void *arg){
             sem_wait(&(semaphoreTableauCB));
                 if(tab_cb[i]!=NULL){
                     strcpy(cb,tab_cb[i]) ;
+                    trouve = 1;
                 }
             sem_post(&(semaphoreTableauCB));
 
+            if(trouve == 0){
+                fprintf(stderr, "RéponseAcquisition - CB NON TROUVÉE");
+            }
+
             printf("%s\n", cb);
             if(strcmp(emetteur,cb) == 0){
-                //fd_pas_trouve = 0;
+                
                 break;
             }  
             i++;

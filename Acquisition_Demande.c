@@ -10,7 +10,6 @@
 
 //---------------------------------------------------------------------- 
 void *thread_LectureDemande(void *arg){
-    sem_wait(&(semaphoreCopyArgs));
         printf("thread Terminal\n");
         arg_thread_T *true_args = arg;
         int fd_toAuto = true_args->fd_toAuto;
