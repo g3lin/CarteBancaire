@@ -30,8 +30,14 @@ Terminal: lectureEcriture.o Terminal.c message.o annuaire.o alea.o
 Autorisation: lectureEcriture.o message.o annuaire.o Autorisation.c alea.o
 	gcc lectureEcriture.o message.o annuaire.o alea.o Autorisation.c -o Autorisation
 
-Acquisition: Acquisition.c lectureEcriture.o message.o Autorisation Terminal 
-	gcc -pthread Acquisition.c lectureEcriture.o message.o -g -o Acquisition
+Acquisition_Demande.o: Acquisition.h 
+	gcc -c -Wall  Acquisition_Demande.c
+
+Acquisition_Reponse.o: Acquisition.h 
+	gcc -c -Wall Acquisition.h Acquisition_Reponse.c
+
+Acquisition: Acquisition.c Acquisition.h lectureEcriture.o message.o Acquisition_Demande.o Acquisition_Reponse.o Autorisation Terminal 
+	gcc -pthread Acquisition.c lectureEcriture.o message.o Acquisition_Demande.o Acquisition_Reponse.o -g -o Acquisition
 
 clean:	
 	rm -f *.o *~ 

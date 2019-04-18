@@ -87,7 +87,7 @@ int main(int argc, char **argv){
             perror("TestMessage (decoupe)");
             exit(0);
         }
-
+        printf("%s\n",rep);
         if (atoi(valeur) == 1){
             // 0 = NON AUTORISEE -- 1 = AUTORISEE
             printf("%s", "AUTORISATION ACCORDEE\n\n");
