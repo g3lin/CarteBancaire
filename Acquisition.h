@@ -1,8 +1,8 @@
 #include <semaphore.h>
-sem_t semaphoreTableauCB;
 sem_t semaphoreTableauTerm;
 sem_t semaphoreCopyArgs;
-int nbTerminaux;
+
+
 
 //---------------------------------------------------------------------- 
 typedef struct {
@@ -25,3 +25,19 @@ typedef struct {
     char** tab_cb;
 } arg_thread_A;
 //---------------------------------------------------------------------- 
+
+typedef struct Terminal{
+  char* CB;
+  int FileDescriptor;
+} Terminal;
+
+typedef  struct TabTerminaux
+{
+  int nbClients;
+  Terminal * terminal;
+} TabTerminaux;
+
+
+TabTerminaux *tab_Terminaux;
+Terminal * terminaux;
+

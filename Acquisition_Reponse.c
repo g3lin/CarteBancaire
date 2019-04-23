@@ -13,8 +13,7 @@
 void *thread_LectureReponse(void *arg){
     arg_thread_A *true_arg = arg;
     int fd_fromAuto = true_arg->fd_fromAuto;
-    int* Tab_fd_Term = true_arg->Tab_fd_Term;
-    char** tab_cb = true_arg->tab_cb;
+
 
 
     int fd_toTerminal;
@@ -29,7 +28,7 @@ void *thread_LectureReponse(void *arg){
     int trouve;
 
     int i = 0;
-    char* cb = malloc(sizeof(char)*255);
+
     //---------------------------------------------------------------------- 
     printf("thread autorisation\n");
     while(1){
@@ -54,30 +53,20 @@ void *thread_LectureReponse(void *arg){
             //printf("%s", messageAutorisation);
             exit(0);
         }
-        
-        for(i=0;i<nbTerminaux;i++){
-            sem_wait(&(semaphoreTableauCB));
-                if(tab_cb[i]!=NULL){
-                    strcpy(cb,tab_cb[i]) ;
+
+        sem_wait(&(semaphoreTableauTerm));
+            for(i=0;i<tab_Terminaux->nbClients;i++){ 
+                if (strcmp(tab_Terminaux->terminal[i].CB,emetteur) == 0){
+                    fd_toTerminal = tab_Terminaux->terminal[i].FileDescriptor;
                     trouve = 1;
                 }
-            sem_post(&(semaphoreTableauCB));
-
-            if(trouve == 0){
-                fprintf(stderr, "RéponseAcquisition - CB NON TROUVÉE");
-            }
-
-            printf("%s\n", cb);
-            if(strcmp(emetteur,cb) == 0){
                 
-                break;
-            }  
-            i++;
-        }
-        sem_wait(&(semaphoreTableauTerm));
-            fd_toTerminal = Tab_fd_Term[i];
+            }
         sem_post(&(semaphoreTableauTerm));
 
+        if( trouve == 0){
+            fprintf(stderr, "CB non trouvée");
+        }
 
         // 3- On renvoie la reponse au terminal 
         err = ecritLigne(fd_toTerminal, rep);

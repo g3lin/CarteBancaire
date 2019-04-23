@@ -18,7 +18,7 @@
 
 
 int main(int argc, char **argv) { 
-
+    int nbTerminaux;
 
     if(argc < 2){
         fprintf(stderr, "Erreur veuillez préciser le nombre de termminaux.\nUsage: ./Acquistion 3\n");
@@ -52,19 +52,16 @@ int main(int argc, char **argv) {
 
 
 
-    if (sem_init(&semaphoreTableauCB,1,1) == -1){
-        perror("Erreur d'initialisation du sémaphore CB: ");
-        exit(0);
-    }
-
     if (sem_init(&semaphoreTableauTerm,1,1) == -1){
-        perror("Erreur d'initialisation du sémaphore Terminaux: ");
+        perror("Erreur d'initialisation du struct Terminaux: ");
         exit(0);
     }
 
-    char** Tab_cb = malloc(sizeof(char[255])*nbTerminaux);
-    int* Tab_fd_Term = malloc(sizeof(int)*nbTerminaux);
+    tab_Terminaux = malloc(sizeof(TabTerminaux));
+    terminaux = malloc(nbTerminaux*sizeof(Terminal));
 
+    tab_Terminaux->nbClients = nbTerminaux;
+    tab_Terminaux->terminal = terminaux;
 
     pthread_t thread_auto;
     pthread_t tab_thread[nbTerminaux];
@@ -140,8 +137,7 @@ int main(int argc, char **argv) {
     printf("Avant la création des args du thread.\n");
 
     args_auto->fd_fromAuto = fd_pipeAutorisationAcquisition[R];
-    args_auto->Tab_fd_Term = Tab_fd_Term;
-    args_auto->tab_cb = Tab_cb;
+
 
     printf("Avant la création du thread.\n");
     if (pthread_create(&thread_auto, NULL, thread_LectureReponse, args_auto)) {
@@ -152,8 +148,7 @@ int main(int argc, char **argv) {
    
     // Creation des threads lisant les terminaux 
     args_term->fd_toAuto = fd_pipeAcquisitionAutorisation[W];
-    args_term->Tab_fd_Term = Tab_fd_Term;
-    args_term->tab_cb = Tab_cb;
+
     
     
 

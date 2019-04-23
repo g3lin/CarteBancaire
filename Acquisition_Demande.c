@@ -15,17 +15,19 @@ void *thread_LectureDemande(void *arg){
         int fd_toAuto = true_args->fd_toAuto;
         int fd_fromTerminal = true_args->fd_fromTerminal;
         int fd_toTerminal = true_args->fd_toTerminal;
-        int* Tab_fd_Term = true_args->Tab_fd_Term;
-        char** tab_cb = true_args->tab_cb;
-    sem_post(&semaphoreCopyArgs);
+        int i = true_args->i;
+    sem_post(&semaphoreCopyArgs); 
 
-    int i = true_args->i;
+    
 
     char *rep;
     int err;
 
-    char emetteur[255], type[255], valeur[255];
+    char* emetteur = malloc(255 * sizeof(char));
+    char* type = malloc(255 * sizeof(char));
+    char* valeur = malloc(255 * sizeof(char));
     int decoupeOk;
+    tab_Terminaux->terminal[i].CB =malloc(sizeof(char)*255);
     printf("FD FROM TERMINAL : %d\n",fd_fromTerminal);
     //---------------------------------------------------------------------- 
     while(1){
@@ -46,12 +48,9 @@ void *thread_LectureDemande(void *arg){
             //printf("%s", messageAutorisation);
             exit(0);
         }
-        sem_wait(&(semaphoreTableauCB));
-            tab_cb[i] = emetteur;
-        sem_post(&(semaphoreTableauCB));
-
         sem_wait(&(semaphoreTableauTerm));
-            Tab_fd_Term[i] = fd_toTerminal;
+            sprintf(tab_Terminaux->terminal[i].CB ,"%s", emetteur);
+            tab_Terminaux->terminal[i].FileDescriptor = fd_toTerminal;
         sem_post(&(semaphoreTableauTerm));
 
 
