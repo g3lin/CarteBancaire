@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include "lectureEcriture.h"
 #include "message.h"
+#include "annuaire.h"
 
 //---------------------------------------------------------------------- 
 void *thread_LectureDemande(void *arg){
@@ -15,6 +16,7 @@ void *thread_LectureDemande(void *arg){
         int fd_toAuto = true_args->fd_toAuto;
         int fd_fromTerminal = true_args->fd_fromTerminal;
         int fd_toTerminal = true_args->fd_toTerminal;
+        int fd_toIB = true_args->fd_toIB;
         int i = true_args->i;
     sem_post(&semaphoreCopyArgs); 
 
@@ -53,14 +55,31 @@ void *thread_LectureDemande(void *arg){
             tab_Terminaux->terminal[i].FileDescriptor = fd_toTerminal;
         sem_post(&(semaphoreTableauTerm));
 
+        char *banqueClient = malloc(5*sizeof(char)) ;
+        AnnuaireClients* an = annuaire("annuaire.an");
+        banqueClient =  (client(an,emetteur)->banque);
 
-        // 3- On transmet la demande au serveur d'autorisation
-        err = ecritLigne(fd_toAuto, rep);
-        if (err == 0) {
-            perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
-            exit(0);
+        if(strcmp(banqueClient,tab_Terminaux->idBanque)==0){
+            // 3- On transmet la demande au serveur d'autorisation
+            err = ecritLigne(fd_toAuto, rep);
+            if (err == 0) {
+                perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
+                exit(0);
+            }
+            printf("Serveur Acquisition : message envoyé\n");
         }
-        printf("Serveur Acquisition : message envoyé\n");
+        else{
+            err = ecritLigne(fd_toIB, rep);
+            if (err == 0) {
+                perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
+                exit(0);
+            }
+            printf("Serveur Acquisition : message envoyé\n");
+
+        }
     }
+    free(emetteur);
+    free(type);
+    free(valeur);
 }
 //---------------------------------------------------------------------- 

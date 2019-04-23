@@ -76,4 +76,7 @@ void *thread_LectureReponse(void *arg){
         }
         printf("Serveur Acquisition : reponse envoyée\n");
     }
+    free(emetteur);
+    free(type);
+    free(valeur);
 }

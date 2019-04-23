@@ -19,9 +19,12 @@
 
 int main(int argc, char **argv) { 
     int nbTerminaux;
+    int fd_pipeAcquistionIB;
+    int fd_pipeIBAquisition;
+    char id_banque[4];
 
-    if(argc < 2){
-        fprintf(stderr, "Erreur veuillez préciser le nombre de termminaux.\nUsage: ./Acquistion 3\n");
+    if(argc < 5){
+        fprintf(stderr, "Erreur veuillez préciser le nombre de termminaux.\nUsage: ./Acquistion 3 fd fd id\n");
         exit(0);
     }
 
@@ -31,6 +34,27 @@ int main(int argc, char **argv) {
         fprintf(stderr,"Erreur pas de terminaux\n");
         exit(0);
     }
+
+    fd_pipeAcquistionIB = atoi(argv[2]);
+    if (fd_pipeAcquistionIB < 0){
+        fprintf(stderr,"Erreur pas de pipe AIB\n");
+        exit(0);
+    }
+
+    fd_pipeIBAquisition = atoi(argv[3]);
+    if (fd_pipeIBAquisition < 0){
+        fprintf(stderr,"Erreur pas de pipe IBA\n");
+        exit(0);
+    }
+
+    strcpy(id_banque , argv[4]);
+    if (id_banque < 0){
+        fprintf(stderr,"Erreur pas d'id banque'\n");
+        exit(0);
+    }
+
+
+
     //---------------------------------------------------------------------- 
     int fd_pipeAcquisitionAutorisation[2] ;
     int fd_pipeAutorisationAcquisition[2] ;
@@ -59,9 +83,12 @@ int main(int argc, char **argv) {
 
     tab_Terminaux = malloc(sizeof(TabTerminaux));
     terminaux = malloc(nbTerminaux*sizeof(Terminal));
+    
 
     tab_Terminaux->nbClients = nbTerminaux;
     tab_Terminaux->terminal = terminaux;
+    strcpy(tab_Terminaux->idBanque , id_banque);
+
 
     pthread_t thread_auto;
     pthread_t tab_thread[nbTerminaux];
@@ -148,6 +175,7 @@ int main(int argc, char **argv) {
    
     // Creation des threads lisant les terminaux 
     args_term->fd_toAuto = fd_pipeAcquisitionAutorisation[W];
+    args_term->fd_toIB = fd_pipeAcquistionIB;
 
     
     
@@ -182,5 +210,7 @@ int main(int argc, char **argv) {
     printf("Après la création du thread.\n");
     free(args_auto);
     free(args_term);
+    free(tab_Terminaux);
+    free(terminaux);
     return 0;
 }

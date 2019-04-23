@@ -11,6 +11,7 @@ typedef struct {
     int fd_toTerminal;
     //info pour autorisation
     int fd_toAuto;
+    int fd_toIB;
     //adresse tableau
     int* Tab_fd_Term;
     char** tab_cb;
@@ -34,6 +35,7 @@ typedef struct Terminal{
 typedef  struct TabTerminaux
 {
   int nbClients;
+  char idBanque[5];
   Terminal * terminal;
 } TabTerminaux;
 
