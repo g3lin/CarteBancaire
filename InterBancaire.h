@@ -1,23 +1,33 @@
 #include <semaphore.h>
 
-typedef struct tab
+typedef struct Banque
 {
-    /* data */
-};
+    char codeBanque[5];
+    int fd_toAquisition;
+    int fd_fromAcquisition;
+    int fd_toRepAcquisitionBanque;
+    sem_t semaphoreTraitement;
+    char CBenTraitement[50];
+    int fd_toRepAcquisitionEnTraitement;
 
 
-typedef struct arg_threadD
+} Banque;
+
+typedef struct Tab
 {
-    int fd_pipeAcquisitionIB;
+    int nbBanque;
+    Banque * Tab_Banque;
+} Tab;
 
-} arg_threadD;
 
 
-typedef struct arg_threadR
-{
-    /* data */
-    
-} arg_threadR;
+
+
+
+
+
+
 
 sem_t semaphoreCopyArgs;
 sem_t semaphoreTab;
+Tab *obj_tabTerminaux;

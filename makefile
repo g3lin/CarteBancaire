@@ -1,8 +1,5 @@
-all:	 TestMessage TestRedirection TestLectureEcriture testAnnuaire Terminal Autorisation Acquisition InterBancaire generationAnnuaire
+all:	 TestMessage TestRedirection TestLectureEcriture testAnnuaire Terminal Autorisation Acquisition InterBancaire main
 
-generationAnnuaire:generationAnnuaire.c annuaire.o alea.o lectureEcriture.o
-	gcc -w generationAnnuaire.c annuaire.o alea.o lectureEcriture.o -o generationAnnuaire
-	./generationAnnuaire 5 50 > log_generation_annuaires.txt
 
 message.o: message.c message.h
 	gcc -Wall -c message.c
@@ -40,20 +37,25 @@ Acquisition_Demande.o: Acquisition_Demande.c Acquisition.h annuaire.h
 Acquisition_Reponse.o: Acquisition_Reponse.c Acquisition.h 
 	gcc -c -Wall Acquisition.h Acquisition_Reponse.c
 
-InterB_Demande.o: InterB_Demande.c InterBancaire.h 
-	gcc -c -Wall  InterBancaire.h InterB_Demande.c
-
-InterB_Reponse.o: InterB_Reponse.c InterBancaire.h 
-	gcc -c -Wall InterBancaire.h InterB_Reponse.c
+InterB_Demande.o: InterB_Demande.c InterBancaire.h annuaire.h
+	gcc -c -Wall  annuaire.h InterBancaire.h InterB_Demande.c
 
 Acquisition: Acquisition.c Acquisition.h lectureEcriture.o message.o Acquisition_Demande.o Acquisition_Reponse.o annuaire.o alea.o Autorisation Terminal 
 	gcc -pthread Acquisition.c lectureEcriture.o message.o Acquisition_Demande.o Acquisition_Reponse.o annuaire.o alea.o -g -o Acquisition
 
-InterBancaire: InterBancaire.c InterBancaire.h Acquisition lectureEcriture.o message.o InterB_Demande.o InterB_Reponse.o
-	gcc -pthread InterBancaire.c lectureEcriture.o message.o InterB_Demande.o InterB_Reponse.o -g -o InterBancaire
+InterBancaire: InterBancaire.c InterBancaire.h Acquisition annuaire.o alea.o lectureEcriture.o message.o InterB_Demande.o
+	gcc -pthread InterBancaire.c annuaire.o alea.o lectureEcriture.o message.o InterB_Demande.o -g -o InterBancaire
+
+generationAnnuaire.o: generationAnnuaire.c  annuaire.c
+	gcc -c -Wall  annuaire.c  generationAnnuaire.c
+
+main: generationAnnuaire.o lectureEcriture.o alea.o annuaire.o main.c
+	gcc generationAnnuaire.o lectureEcriture.o alea.o annuaire.o main.c -o main
+# generationAnnuaire.o:  annuaire.c annuaire.h alea.c alea.h lectureEcriture.c lectureEcriture.h generationAnnuaire.c
+# 	gcc -c -Wall annuaire.c annuaire.h alea.c alea.h lectureEcriture.c lectureEcriture.h generationAnnuaire.c
 
 clean:	
-	rm -f *.o *~ *.an
+	rm -f *.o *~ *.gch
 
 cleanall: clean
-	rm TestRedirection TestMessage TestLectureEcriture Terminal Autorisation Acquisition testAnnuaire InterBancaire generationAnnuaire
+	rm TestRedirection TestMessage TestLectureEcriture Terminal Autorisation Acquisition testAnnuaire InterBancaire main

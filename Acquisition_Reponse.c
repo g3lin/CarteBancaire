@@ -13,7 +13,7 @@
 void *thread_LectureReponse(void *arg){
     arg_thread_A *true_arg = arg;
     int fd_fromAuto = true_arg->fd_fromAuto;
-
+    sem_post(&semaphoreCopyArgs);
 
 
     int fd_toTerminal;

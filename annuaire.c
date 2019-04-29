@@ -126,10 +126,9 @@ AnnuaireClients *annuaire(char *fileName)
   /* Retourne l'annuaire stock� dans le fichier filName            */
   /*****************************************************************/
 {
-  int i, fd, nbClients, nb, len;
+  int i, fd, nbClients, nb;
   AnnuaireClients *an;
   char * ligne;
-  char tmp[32];
 
   fd = open(fileName, O_RDONLY); 
   if(fd == -1){

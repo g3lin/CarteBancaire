@@ -8,7 +8,6 @@
 #include "lectureEcriture.h"
 #include "message.h"
 #include "InterB_Demande.h"
-#include "InterB_Reponse.h"
 #include "InterBancaire.h"
 
 
@@ -42,21 +41,29 @@ int main(int argc, char **argv) {
     }
     //---------------------------------------------------------------------- 
 
+    obj_tabTerminaux = malloc(sizeof(Tab));
+    Banque *tab_Banque = malloc(nbBanque*sizeof(Banque));
+    obj_tabTerminaux->nbBanque = nbBanque;
+    obj_tabTerminaux->Tab_Banque = tab_Banque;
+    for (int i=0; i<nbBanque;i++){
+        sem_init(&obj_tabTerminaux->Tab_Banque[i].semaphoreTraitement,1,1);
+    }
+
     sem_init(&semaphoreCopyArgs,1,1);
-    arg_threadD* obj_arg_threadD = malloc(sizeof(arg_threadD));
-    arg_threadR* obj_arg_threadR = malloc(sizeof(arg_threadR));
 
     int fd_pipeIBAcquisition[nbBanque][2];
     int fd_pipeAcquisitionIB[nbBanque][2];
+    int fd_pipeIBAcquisitionRep[nbBanque][2];
 
     int fd_pipe_AIB[2];
     int fd_pipe_IBA[2];
+    int fd_pipe_IBARep[2];
 
 
     int i;
     int p;
     char *rep ;
-    char arg1[255], arg2[255], arg3[255], arg4[255]; 
+    char arg1[255], arg2[255], arg3[255], arg4[255],arg5[255]; 
 
 
     int err;
@@ -95,11 +102,18 @@ int main(int argc, char **argv) {
         fd_pipeAcquisitionIB[i][R] = fd_pipe_IBA[R];
 
         
-        // Creation des pipes ACQ_REPONSE ET IB
+        // Creation des pipes ACQ_DEMANDE ET IB
         if(pipe(fd_pipe_AIB)!= 0) 
             fprintf(stderr,"Erreur creation fd_pipeTerminalAcquisition\n");
         fd_pipeIBAcquisition[i][W] = fd_pipe_AIB[W];
         fd_pipeIBAcquisition[i][R] = fd_pipe_AIB[R];
+
+        // Creation des pipes IB ET ACQ_REPONSE
+        if(pipe(fd_pipe_IBARep)!= 0) 
+            fprintf(stderr,"Erreur creation fd_pipeTerminalAcquisition\n");
+        fd_pipeIBAcquisitionRep[i][W] = fd_pipe_IBARep[W];
+        fd_pipeIBAcquisitionRep[i][R] = fd_pipe_IBARep[R];
+
     }
 
    
@@ -124,15 +138,23 @@ int main(int argc, char **argv) {
             sprintf(arg1,"%d", nbTerminaux);
             sprintf(arg2,"%d", fd_pipeAcquisitionIB[i][W]);
             sprintf(arg3,"%d", fd_pipeIBAcquisition[i][R]);
-            sprintf(arg4,"000%d",i);
+            sprintf(arg4,"%d", fd_pipeIBAcquisitionRep[i][R]),
+            sprintf(arg5,"000%d",i);
+            
 
             
-            err_exec = execl( "/usr/bin/xterm", "/usr/bin/xterm", "-hold", "-e", "./Acquisition", arg1, arg2, arg3, arg4, (char *)NULL );
+            err_exec = execl( "/usr/bin/xterm", "/usr/bin/xterm",  "-e", "./Acquisition", arg1, arg2, arg3, arg4,arg5, (char *)NULL );
             //err_exec = execl("./Acquisition", arg1, arg2, arg3, (char *)NULL );
 
             perror("Acquisition - initialisation : L'acquition s'est mal initialisé: ");    
         }
 
+        // SETUP COTÉ SERVEUR
+
+        sprintf(obj_tabTerminaux->Tab_Banque[i].codeBanque, "000%d",i);
+        obj_tabTerminaux->Tab_Banque[i].fd_toAquisition = fd_pipeIBAcquisition[i][W];
+        obj_tabTerminaux->Tab_Banque[i].fd_fromAcquisition = fd_pipeAcquisitionIB[i][R];
+        sleep(5);
     }
 
     //----------------------------------------------------------------------  
@@ -144,27 +166,18 @@ int main(int argc, char **argv) {
     for (i = 0 ; i<nbBanque ; i++){
         //THREADS LECTURE ACQ DEMANDE i
         sem_wait(&semaphoreCopyArgs);
-            obj_arg_threadD->fd_pipeAcquisitionIB = fd_pipeAcquisitionIB[i][R];
+            
             // args_term->fd_toTerminal = fd_pipeAcquisitionTerminal[W][i];
             // args_term->i = i;
         
 
-            if (pthread_create(&tab_threadD[i], NULL, thread_LectureDemande,obj_arg_threadD)) {
+            if (pthread_create(&tab_threadD[i], NULL, thread_LectureDemande, &(obj_tabTerminaux->Tab_Banque[i]) )) {
                 perror("pthread_create");
                 return EXIT_FAILURE;
             }       
         
     }
 
-    for (i = 0 ; i<nbBanque ; i++){
-        //THREADS LECTURE ACQ REPONSE i
-        sem_wait(&semaphoreCopyArgs);
-            if (pthread_create(&tab_threadR[i], NULL, thread_LectureReponse,obj_arg_threadR)) {
-                perror("pthread_create");
-                return EXIT_FAILURE;
-            }
-
-    }
 
     
     for (i = 0 ; i<nbTerminaux ; i++){
@@ -183,7 +196,5 @@ int main(int argc, char **argv) {
      
         
     printf("Après la création du thread.\n");
-    free(obj_arg_threadD);
-    free(obj_arg_threadR);
     return 0;
 }

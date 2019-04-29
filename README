@@ -9,9 +9,5 @@ Projet E3 ESIEE Paris réalisé par Baptiste ADAM et Antoine GÉLIN en avril 201
 Vous devez etre sur un systeme UNIX (par exemple les machines linux de l'ESIEE
 - Mettez vous dans le repertoire du projet avec cd
 - Compilez le programme avec "make"
-- Executez le programme avec "./InterBancaire <Nombre de banques à avoir> <Nombre de terminaux à executer>" 
-	(par exemple "./InterBancaire 3 3")
+- Executez le programme avec "./main" 
 
-La sortie du programme se fait avec ctrl + c dans le terminal principal
-	(duquel vous avez lancé le programme)
-La commande pkill -f xterm est pratique si les terminaux xterm se ferment mal

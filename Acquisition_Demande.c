@@ -66,7 +66,7 @@ void *thread_LectureDemande(void *arg){
                 perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
                 exit(0);
             }
-            printf("Serveur Acquisition : message envoyé\n");
+            printf("Serveur Acquisition : message envoyé à autorisation\n");
         }
         else{
             err = ecritLigne(fd_toIB, rep);
@@ -74,7 +74,7 @@ void *thread_LectureDemande(void *arg){
                 perror("Acquisition : fd_pipeAcquisitionAutorisation - ecritLigne");
                 exit(0);
             }
-            printf("Serveur Acquisition : message envoyé\n");
+            printf("Serveur Acquisition : message envoyé à interbancaire\n");
 
         }
     }

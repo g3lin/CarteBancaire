@@ -21,10 +21,11 @@ int main(int argc, char **argv) {
     int nbTerminaux;
     int fd_pipeAcquistionIB;
     int fd_pipeIBAquisition;
+    int fd_pipeIBAquisitionRep;
     char id_banque[4];
 
-    if(argc < 5){
-        fprintf(stderr, "Erreur veuillez préciser le nombre de termminaux.\nUsage: ./Acquistion 3 fd fd id\n");
+    if(argc < 6){
+        fprintf(stderr, "Erreur veuillez préciser le nombre de termminaux.\nUsage: ./Acquistion 3 fd fd fd id\n");
         exit(0);
     }
 
@@ -47,7 +48,13 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
-    strcpy(id_banque , argv[4]);
+    fd_pipeIBAquisitionRep = atoi(argv[4]);
+    if (fd_pipeIBAquisitionRep < 0){
+        fprintf(stderr,"Erreur pas de pipe IBARep\n");
+        exit(0);
+    }
+
+    strcpy(id_banque , argv[5]);
     if (id_banque < 0){
         fprintf(stderr,"Erreur pas d'id banque'\n");
         exit(0);
@@ -152,7 +159,7 @@ int main(int argc, char **argv) {
             sprintf(arg1,"%d", fd_pipeTerminalAcquisition[W][i]);
             sprintf(arg2,"%d", fd_pipeAcquisitionTerminal[R][i]);
 
-            err_exec = execl( "/usr/bin/xterm", "/usr/bin/xterm", "-hold", "-e", "./Terminal", arg1, arg2, (char *)NULL );
+            err_exec = execl( "/usr/bin/xterm", "/usr/bin/xterm",  "-e", "./Terminal", arg1, arg2, (char *)NULL );
             perror("Acquisition - initialisation : Le terminal s'est mal initialisé: ");    
         }
 
@@ -163,10 +170,16 @@ int main(int argc, char **argv) {
     // Ceci reste le serveur d'acquisition
     printf("Avant la création des args du thread.\n");
 
+    sem_wait(&semaphoreCopyArgs);
     args_auto->fd_fromAuto = fd_pipeAutorisationAcquisition[R];
-
-
     printf("Avant la création du thread.\n");
+    if (pthread_create(&thread_auto, NULL, thread_LectureReponse, args_auto)) {
+        perror("pthread_create");
+        return EXIT_FAILURE;
+    }
+
+    sem_wait(&semaphoreCopyArgs);
+    args_auto->fd_fromAuto = fd_pipeIBAquisitionRep;
     if (pthread_create(&thread_auto, NULL, thread_LectureReponse, args_auto)) {
         perror("pthread_create");
         return EXIT_FAILURE;

@@ -1,5 +1,5 @@
 
-#include<stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
 #include "annuaire.h"
@@ -7,32 +7,30 @@
 
 
 /* Pour tester les annuaires */
-int main(int argc, char **argv){
-    long int nbBanques, nbCartes;
+void generate_ann(int nbBanques, int nbCartes){
     AnnuaireClients *an;
     AnnuaireClients *anFiltre;
-    Client *cl;
 
-    if(argc != 3){
-        fprintf(stderr, "usage : %s nbBanques nbCartes\n", argv[0]);
-        exit(0);
-    }
+    // if(argc != 3){
+    //     fprintf(stderr, "usage : %s nbBanques nbCartes\n");
+    //     exit(0);
+    // }
 
-    nbBanques = strtol(argv[1], NULL, 10);
-    if( (nbBanques == LONG_MIN) || (nbBanques == LONG_MAX) ){
-        fprintf(stderr, "%s: nombre de banques invalide\n", argv[0]);
-        exit(0);
-    }
+    // nbBanques = strtol(argv[1], NULL, 10);
+    // if( (nbBanques == LONG_MIN) || (nbBanques == LONG_MAX) ){
+    //     fprintf(stderr, "%s: nombre de banques invalide\n");
+    //     exit(0);
+    // }
         
-    nbCartes = atoi(argv[2]);
-    if( (nbCartes == LONG_MIN) || (nbCartes == LONG_MAX) ){
-        fprintf(stderr, "%s: nombre de cartes invalide\n", argv[0]);
-        exit(0);
-    }
+    // nbCartes = atoi(argv[2]);
+    // if( (nbCartes == LONG_MIN) || (nbCartes == LONG_MAX) ){
+    //     fprintf(stderr, "%s: nombre de cartes invalide\n");
+    //     exit(0);
+    // }
 
     an = annuaireAleatoire(nbBanques, nbCartes);
     if(an == NULL){
-        fprintf(stderr, "%s: Ne peut allouer un annuaire \n", argv[0]);
+        fprintf(stderr, "Ne peut allouer un annuaire \n");
         exit(0);
     }
 
@@ -41,12 +39,12 @@ int main(int argc, char **argv){
     
     // sauvegarder l'annuaire an dans le fichier "Annu"
     if(!sauvegardeAnnuaire(an, "annuaire.an")){
-        fprintf(stderr, "%s, Ne peut pas sauvegarder l'annuaire\n", argv[0]);
+        fprintf(stderr, " Ne peut pas sauvegarder l'annuaire\n");
     }
 
 
     for (int i = 0; i<nbBanques;i++){
-        char idbanque[4] ;
+        char idbanque[5] ;
         sprintf(idbanque,"000%d",i);
         printf("=================================");
         printf("%s", idbanque);
@@ -55,7 +53,7 @@ int main(int argc, char **argv){
 
         anFiltre = annuaireFiltre(an, idbanque);
         if(anFiltre == NULL){
-            fprintf(stderr,"%s ne peut filtrer l'annuaire demande\n",argv[0]);
+            fprintf(stderr,"ne peut filtrer l'annuaire demande\n");
             libererAnnuaire(an);
             exit(0);
         }
